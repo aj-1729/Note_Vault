@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Notes App</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="text-2xl font-bold text-indigo-600">API NotesApp</a>
+                <button id="logout-button" class="hidden bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto mt-10 p-6">
+        <!-- Notification Area -->
+        <div id="notification" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert"></div>
+
+        <!-- Authentication View (Login/Register) -->
+        <div id="auth-view">
+            <div class="grid md:grid-cols-2 gap-10">
+                <!-- Login Form -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <form id="login-form">
+                        <fieldset class="space-y-6">
+                            <legend class="text-2xl font-bold text-center mb-6">Log In</legend>
+                            <div>
+                                <label for="login-username" class="block mb-2 text-sm font-medium">Username</label>
+                                <input id="login-username" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                            <div>
+                                <label for="login-password" class="block mb-2 text-sm font-medium">Password</label>
+                                <input id="login-password" type="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </fieldset>
+                        <div class="mt-6">
+                            <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Login</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Registration Form -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <form id="register-form">
+                        <fieldset class="space-y-4">
+                            <legend class="text-2xl font-bold text-center mb-6">Register</legend>
+                             <div>
+                                <label for="register-username" class="block mb-2 text-sm font-medium">Username</label>
+                                <input id="register-username" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                            <div>
+                                <label for="register-password" class="block mb-2 text-sm font-medium">Password</label>
+                                <input id="register-password" type="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </fieldset>
+                        <div class="mt-6">
+                            <button type="submit" class="w-full bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800">Sign Up</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes View (Visible after login) -->
+        <div id="notes-view" class="hidden">
+            <!-- New Note Form -->
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full mb-12">
+                <h1 class="text-2xl font-bold mb-6">Create a New Note</h1>
+                <form id="note-form">
+                    <div class="mb-4">
+                         <label for="note-title" class="block mb-2 text-sm font-medium">Title</label>
+                        <input id="note-title" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="My awesome note">
+                    </div>
+                    <div class="mb-4">
+                         <label for="note-content" class="block mb-2 text-sm font-medium">Content</label>
+                        <textarea id="note-content" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4" placeholder="What's on your mind?"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Add Note</button>
+                    </div>
+                </form>
+            </div>
+             <!-- Notes List -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6">Your Notes</h2>
+                <div id="notes-list" class="space-y-4">
+                    <!-- Notes will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Note Modal -->
+    <div id="edit-modal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+            <div class="modal-content py-4 text-left px-6">
+                <div class="flex justify-between items-center pb-3">
+                    <p class="text-2xl font-bold">Edit Note</p>
+                    <button id="close-modal-button" class="cursor-pointer z-50">
+                        <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path></svg>
+                    </button>
+                </div>
+                <form id="edit-note-form">
+                    <input type="hidden" id="edit-note-id">
+                    <div class="mb-4">
+                         <label for="edit-note-title" class="block mb-2 text-sm font-medium">Title</label>
+                        <input id="edit-note-title" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div class="mb-4">
+                         <label for="edit-note-content" class="block mb-2 text-sm font-medium">Content</label>
+                        <textarea id="edit-note-content" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4"></textarea>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="px-4 bg-indigo-600 p-3 rounded-lg text-white hover:bg-indigo-700">Update Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Basic Setup ---
+        const API_URL = 'http://127.0.0.1:5000';
+        let token = localStorage.getItem('token');
+
+        // --- DOM Element References ---
+        const authView = document.getElementById('auth-view');
+        const notesView = document.getElementById('notes-view');
+        const logoutButton = document.getElementById('logout-button');
+        const notificationArea = document.getElementById('notification');
+        const notesList = document.getElementById('notes-list');
+        const editModal = document.getElementById('edit-modal');
+
+        // --- UI Helper Functions ---
+        const showNotification = (message, type = 'success') => {
+            notificationArea.textContent = message;
+            notificationArea.className = `p-4 mb-4 text-sm rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            notificationArea.classList.remove('hidden');
+            setTimeout(() => notificationArea.classList.add('hidden'), 3000);
+        };
+        
+        const updateUI = () => {
+            if (token) {
+                authView.classList.add('hidden');
+                notesView.classList.remove('hidden');
+                logoutButton.classList.remove('hidden');
+                fetchNotes();
+            } else {
+                authView.classList.remove('hidden');
+                notesView.classList.add('hidden');
+                logoutButton.classList.add('hidden');
+            }
+        };
+
+        const toggleModal = () => {
+            editModal.classList.toggle('opacity-0');
+            editModal.classList.toggle('pointer-events-none');
+        }
+
+        // --- API Call Functions ---
+        const apiFetch = async (endpoint, method = 'GET', body = null) => {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const options = { method, headers };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                if (response.status === 401) { // Unauthorized
+                    handleLogout();
+                    showNotification('Your session has expired. Please log in again.', 'error');
+                    return null;
+                }
+                return response.json();
+            } catch (error) {
+                console.error('API Fetch Error:', error);
+                showNotification('Could not connect to the server.', 'error');
+                return null;
+            }
+        };
+
+        const fetchNotes = async () => {
+            const notes = await apiFetch('/notes');
+            if (notes) {
+                renderNotes(notes);
+            }
+        };
+
+        const handleRegister = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const data = await apiFetch('/register', 'POST', { username, password });
+            if (data && data.msg === "User created Successfully") {
+                showNotification('Registration successful! Please log in.');
+                e.target.reset();
+            } else {
+                showNotification(data?.msg || 'Registration failed.', 'error');
+            }
+        };
+
+        const handleLogin = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const data = await apiFetch('/login', 'POST', { username, password });
+            if (data && data.access_token) {
+                token = data.access_token;
+                localStorage.setItem('token', token);
+                updateUI();
+                showNotification('Logged in successfully!');
+            } else {
+                showNotification(data?.msg || 'Login failed.', 'error');
+            }
+        };
+
+        const handleLogout = () => {
+            token = null;
+            localStorage.removeItem('token');
+            notesList.innerHTML = '';
+            updateUI();
+            showNotification('You have been logged out.');
+        };
+        
+        const handleCreateNote = async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('note-title').value;
+            const content = document.getElementById('note-content').value;
+            const newNote = await apiFetch('/notes', 'POST', { title, content });
+            if (newNote && !newNote.error) {
+                fetchNotes(); // Re-fetch all notes to display the new one
+                e.target.reset();
+                showNotification('Note created!');
+            } else {
+                showNotification('Failed to create note.', 'error');
+            }
+        };
+
+        const handleDeleteNote = async (noteId) => {
+            const result = await apiFetch(`/notes/${noteId}`, 'DELETE');
+            if(result && result.message) {
+                fetchNotes();
+                showNotification('Note deleted.');
+            } else {
+                showNotification('Could not delete note.', 'error');
+            }
+        };
+        
+        const openEditModal = (note) => {
+            document.getElementById('edit-note-id').value = note.id;
+            document.getElementById('edit-note-title').value = note.title;
+            document.getElementById('edit-note-content').value = note.content;
+            toggleModal();
+        };
+
+        const handleUpdateNote = async (e) => {
+            e.preventDefault();
+            const noteId = document.getElementById('edit-note-id').value;
+            const title = document.getElementById('edit-note-title').value;
+            const content = document.getElementById('edit-note-content').value;
+            const updatedNote = await apiFetch(`/notes/${noteId}`, 'PUT', { title, content });
+
+            if(updatedNote && !updatedNote.msg) {
+                toggleModal();
+                fetchNotes();
+                showNotification('Note updated successfully!');
+            } else {
+                showNotification(updatedNote?.msg || 'Failed to update note.', 'error');
+            }
+        };
+
+        // --- Rendering Logic ---
+        const renderNotes = (notes) => {
+            notesList.innerHTML = '';
+            if (notes.length === 0) {
+                 notesList.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <p class="text-gray-500">You don't have any notes yet. Add one above!</p>
+                </div>`;
+                return;
+            }
+            notes.forEach(note => {
+                const noteElement = document.createElement('div');
+                noteElement.className = 'bg-white p-6 rounded-lg shadow-md';
+                noteElement.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2">${note.title}</h3>
+                            <p class="text-gray-700 whitespace-pre-wrap">${note.content}</p>
+                            <p class="text-xs text-gray-400 mt-4">${new Date(note.created_at).toLocaleString()}</p>
+                        </div>
+                        <div class="flex space-x-2 ml-4 flex-shrink-0">
+                            <button class="edit-btn text-blue-500 hover:text-blue-700 font-semibold">Edit</button>
+                            <button class="delete-btn text-red-500 hover:text-red-700 font-semibold">Delete</button>
+                        </div>
+                    </div>
+                `;
+                noteElement.querySelector('.delete-btn').addEventListener('click', () => handleDeleteNote(note.id));
+                noteElement.querySelector('.edit-btn').addEventListener('click', () => openEditModal(note));
+                notesList.appendChild(noteElement);
+            });
+        };
+
+        // --- Event Listeners ---
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+        document.getElementById('register-form').addEventListener('submit', handleRegister);
+        document.getElementById('note-form').addEventListener('submit', handleCreateNote);
+        document.getElementById('edit-note-form').addEventListener('submit', handleUpdateNote);
+        logoutButton.addEventListener('click', handleLogout);
+        
+        // Modal close listeners
+        document.querySelector('.modal-overlay').addEventListener('click', toggleModal);
+        document.getElementById('close-modal-button').addEventListener('click', toggleModal);
+        
+        // --- Initial Load ---
+        updateUI();
+
+    </script>
+</body>
+</html>
+

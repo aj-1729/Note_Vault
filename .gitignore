@@ -1,0 +1,10 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Local database file
+database.db
+
+# Flask instance folder
+instance/
