@@ -25,6 +25,24 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# --- Database Configuration ---
+
+# Check if we are on PythonAnywhere
+if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+    # Configuration for PythonAnywhere's MySQL database
+    DB_USER = os.environ.get('DB_USER')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD')
+    DB_HOST = os.environ.get('DB_HOST')
+    DB_NAME = os.environ.get('DB_NAME')
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    )
+else:
+    # Fallback to local SQLite database for development
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # --- Extensions Initialization ---
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
