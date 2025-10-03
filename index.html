@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NoteVault | Your Secure Notes</title>
     
-    <!-- Load Tailwind first -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Then apply Tailwind config -->
     <script>
         tailwind.config = {
             darkMode: 'class'
@@ -31,7 +29,7 @@
         .modal { transition: opacity 0.3s ease, transform 0.3s ease; }
         .modal-hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
 
-        /* ✅ Fix for disappearing notifications */
+        /* Fix for disappearing notifications */
         @keyframes fadeOut { 
             from { opacity: 1; } 
             to { opacity: 0; } 
@@ -79,7 +77,7 @@
                     <form id="login-form">
                         <fieldset class="space-y-6">
                             <legend class="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">Welcome Back!</legend>
-                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Username"></div>
+                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Username or Email"></div>
                             <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Password"></div>
                         </fieldset>
                         <div class="mt-6"><button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"> <i data-lucide="log-in" class="w-5 h-5"></i><span>Login</span></button></div>
@@ -88,6 +86,7 @@
                         <fieldset class="space-y-4">
                             <legend class="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">Create Account</legend>
                             <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Choose a username"></div>
+                            <div class="relative"><i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-email" type="email" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Enter your email"></div>
                             <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Choose a password"></div>
                         </fieldset>
                         <div class="mt-6"><button type="submit" class="w-full bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i><span>Sign Up</span></button></div>
@@ -110,7 +109,6 @@
             </div>
         </main>
 
-        <!-- Edit Modal -->
         <div id="edit-modal" class="modal modal-hidden fixed w-full h-full top-0 left-0 flex items-center justify-center">
             <div class="modal-overlay absolute w-full h-full bg-gray-900/60"></div>
             <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto">
@@ -283,62 +281,60 @@
                 updateUI(); 
                 showNotification('Login successful!'); 
             } else { 
-                showNotification('Invalid login credentials.', 'error'); 
+                showNotification(data.message || 'Invalid login credentials.', 'error'); 
             } 
         });
 
-        document.getElementById('register-form').addEventListener('submit', async (e) => { 
-    e.preventDefault(); 
-       const username = document.getElementById('register-username').value; 
-       const password = document.getElementById('register-password').value; 
-        const data = await apiFetch('/register', 'POST', { username, password }); 
-        if (data && data.message) { 
-            showNotification('Registration successful! Please login.'); 
-            document.getElementById('register-form').reset(); 
-            document.getElementById('show-login-btn').click(); 
-        } 
-        else { 
-            showNotification('Registration failed.', 'error'); 
-        } 
-    });
+        // === UPDATED REGISTER FORM LISTENER ===
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            const data = await apiFetch('/register', 'POST', { username, email, password });
 
-        
+            if (data && data.message.includes("check your email")) {
+                showNotification(data.message);
+                document.getElementById('register-form').reset();
+                document.getElementById('show-login-btn').click();
+            } else {
+                showNotification(data.message || 'Registration failed.', 'error');
+            }
+        });
 
         document.getElementById('note-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title = document.getElementById('note-title').value;
-    const content = document.getElementById('note-content').value;
-    const data = await apiFetch('/notes', 'POST', { title, content });
+            e.preventDefault();
+            const title = document.getElementById('note-title').value;
+            const content = document.getElementById('note-content').value;
+            const data = await apiFetch('/notes', 'POST', { title, content });
 
-    // CORRECTED LOGIC
-    if (data && data.id) { // A successful note creation returns the new note object, which has an id
-        showNotification('Note added successfully!');
-        e.target.reset(); // or document.getElementById('note-form').reset();
-        fetchNotes(); // Refresh the notes list to show the new one
-    } else {
-        showNotification(data?.error || 'Failed to create note.', 'error');
-    }
-});
-        
+            if (data && data.id) {
+                showNotification('Note added successfully!');
+                e.target.reset();
+                fetchNotes();
+            } else {
+                showNotification(data?.error || 'Failed to create note.', 'error');
+            }
+        });
+
         document.getElementById('edit-note-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Get the data from the modal's form fields
-    const id = document.getElementById('edit-note-id').value;
-    const title = document.getElementById('edit-note-title').value;
-    const content = document.getElementById('edit-note-content').value;
+            e.preventDefault();
+            
+            const id = document.getElementById('edit-note-id').value;
+            const title = document.getElementById('edit-note-title').value;
+            const content = document.getElementById('edit-note-content').value;
 
-    // Send the data to the server using the PUT method
-    const data = await apiFetch(`/notes/${id}`, 'PUT', { title, content });
+            const data = await apiFetch(`/notes/${id}`, 'PUT', { title, content });
 
-    if (data && data.id) {
-        showNotification('Note updated successfully!');
-        toggleModal(); // Close the modal
-        fetchNotes();  // Refresh the notes list to show the change
-    } else {
-        showNotification('Failed to update note.', 'error');
-    }
-});
+            if (data && data.id) {
+                showNotification('Note updated successfully!');
+                toggleModal();
+                fetchNotes();
+            } else {
+                showNotification('Failed to update note.', 'error');
+            }
+        });
 
         document.getElementById('show-login-btn').addEventListener('click', () => { 
             document.getElementById('login-form').classList.remove('hidden'); 

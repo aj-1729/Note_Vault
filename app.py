@@ -1,11 +1,15 @@
 import os
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from flask_mail import Mail, Message
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity
 from flask_migrate import Migrate
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+
 
 # --- App Initialization ---
 app = Flask(__name__)
@@ -13,7 +17,17 @@ CORS(app) # Enable Cross-Origin Resource Sharing
 
 # --- Configuration ---
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY', "a_strong_default_secret_key_for_dev")
+app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY', "a_different_strong_secret_key")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME') # Your Gmail address
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD') # Your Gmail App Password
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
+
 
 # Database Configuration: Use environment variable for production, otherwise use local SQLite
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -48,12 +62,17 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
+mail = Mail(app)
+s = URLSafeTimedSerializer(app.config['SECRET_KEY']) 
+
 
 # --- Database Models ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,32 +100,73 @@ def health_check():
 # --- User Authentication Routes ---
 @app.route('/register', methods=['POST'])
 def register():
-    """Register a new user."""
     data = request.get_json()
     username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
-    if not username or not password:
-        return jsonify({"message": "Username and password are required"}), 400
+
+    if not username or not password or not email:
+        return jsonify({"message": "Username, email, and password are required"}), 400
     if User.query.filter_by(username=username).first():
-        return jsonify({"message": "Please try another username"}), 409
+        return jsonify({"message": "Username already exists"}), 409
+    if User.query.filter_by(email=email).first():
+        return jsonify({"message": "Email already registered"}), 409
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_user = User(username=username, password=hashed_password)
+    new_user = User(username=username, email=email, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"message": "User created Successfully"}), 201
+
+    # --- Send verification email ---
+    token = s.dumps(email, salt='email-confirm')
+    link = url_for('verify_email', token=token, _external=True)
+    msg = Message('Confirm Your Email', recipients=[email])
+    msg.body = f'Your verification link is {link}'
+    mail.send(msg)
+    # --- End of email sending ---
+
+    return jsonify({"message": "User created. Please check your email to verify your account."}), 201
+
+
+@app.route('/verify-email/<token>')
+def verify_email(token):
+    try:
+        # Token is valid for 1 hour (3600 seconds)
+        email = s.loads(token, salt='email-confirm', max_age=3600)
+    except (SignatureExpired, BadTimeSignature):
+        return '<h1>The confirmation link is invalid or has expired.</h1>'
+
+    user = User.query.filter_by(email=email).first_or_404()
+    user.is_verified = True
+    db.session.commit()
+    return '<h1>Your email has been verified! You can now log in.</h1>' # You can redirect to a frontend page
+
+
+
+
+from sqlalchemy import or_ # Import 'or_' at the top of your file
 
 @app.route('/login', methods=['POST'])
 def login():
-    """Log in a user and return a JWT access token."""
     data = request.get_json()
-    username = data.get('username')
+    identifier = data.get('username') # Can be username or email
     password = data.get('password')
-    user = User.query.filter_by(username=username).first()
+
+    user = User.query.filter(or_(User.username == identifier, User.email == identifier)).first()
+
+    if not user:
+        return jsonify({"message": "Incorrect username, email, or password"}), 401
+
+    if not user.is_verified:
+        return jsonify({"message": "Account not verified. Please check your email."}), 403 # 403 Forbidden
+
     if user and bcrypt.check_password_hash(user.password, password):
         access_token = create_access_token(identity=str(user.id))
         return jsonify(access_token=access_token)
-    return jsonify({"msg": "Incorrect username or password"}), 401
+
+    return jsonify({"message": "Incorrect username, email, or password"}), 401
+
+
 
 # --- Notes CRUD Routes ---
 @app.route('/notes', methods=['GET'])
