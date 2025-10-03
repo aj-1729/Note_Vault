@@ -86,15 +86,15 @@ def register():
     username = data.get('username')
     password = data.get('password')
     if not username or not password:
-        return jsonify({"msg": "Username and password are required"}), 400
+        return jsonify({"message": "Username and password are required"}), 400
     if User.query.filter_by(username=username).first():
-        return jsonify({"msg": "Please try another username"}), 409
+        return jsonify({"message": "Please try another username"}), 409
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     new_user = User(username=username, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"msg": "User created Successfully"}), 201
+    return jsonify({"message": "User created Successfully"}), 201
 
 @app.route('/login', methods=['POST'])
 def login():

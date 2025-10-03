@@ -1,337 +1,374 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Notes App</title>
-    <!-- Tailwind CSS for styling -->
+    <title>NoteVault | Your Secure Notes</title>
+    
+    <!-- Load Tailwind first -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Then apply Tailwind config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/macy@2"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .modal {
-            transition: opacity 0.25s ease;
+        body { font-family: 'Poppins', sans-serif; }
+
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+
+        .modal { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .modal-hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
+
+        /* ✅ Fix for disappearing notifications */
+        @keyframes fadeOut { 
+            from { opacity: 1; } 
+            to { opacity: 0; } 
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 min-h-screen transition-colors duration-500">
 
-    <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <a href="#" class="text-2xl font-bold text-indigo-600">API NotesApp</a>
-                <button id="logout-button" class="hidden bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium">Logout</button>
-            </div>
-        </div>
-    </nav>
-
-    <main class="max-w-4xl mx-auto mt-10 p-6">
-        <!-- Notification Area -->
-        <div id="notification" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert"></div>
-
-        <!-- Authentication View (Login/Register) -->
-        <div id="auth-view">
-            <div class="grid md:grid-cols-2 gap-10">
-                <!-- Login Form -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <form id="login-form">
-                        <fieldset class="space-y-6">
-                            <legend class="text-2xl font-bold text-center mb-6">Log In</legend>
-                            <div>
-                                <label for="login-username" class="block mb-2 text-sm font-medium">Username</label>
-                                <input id="login-username" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            </div>
-                            <div>
-                                <label for="login-password" class="block mb-2 text-sm font-medium">Password</label>
-                                <input id="login-password" type="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            </div>
-                        </fieldset>
-                        <div class="mt-6">
-                            <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Login</button>
-                        </div>
-                    </form>
-                </div>
-                <!-- Registration Form -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <form id="register-form">
-                        <fieldset class="space-y-4">
-                            <legend class="text-2xl font-bold text-center mb-6">Register</legend>
-                             <div>
-                                <label for="register-username" class="block mb-2 text-sm font-medium">Username</label>
-                                <input id="register-username" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            </div>
-                            <div>
-                                <label for="register-password" class="block mb-2 text-sm font-medium">Password</label>
-                                <input id="register-password" type="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                            </div>
-                        </fieldset>
-                        <div class="mt-6">
-                            <button type="submit" class="w-full bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800">Sign Up</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notes View (Visible after login) -->
-        <div id="notes-view" class="hidden">
-            <!-- New Note Form -->
-            <div class="bg-white p-8 rounded-lg shadow-lg w-full mb-12">
-                <h1 class="text-2xl font-bold mb-6">Create a New Note</h1>
-                <form id="note-form">
-                    <div class="mb-4">
-                         <label for="note-title" class="block mb-2 text-sm font-medium">Title</label>
-                        <input id="note-title" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="My awesome note">
-                    </div>
-                    <div class="mb-4">
-                         <label for="note-content" class="block mb-2 text-sm font-medium">Content</label>
-                        <textarea id="note-content" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4" placeholder="What's on your mind?"></textarea>
-                    </div>
-                    <div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Add Note</button>
-                    </div>
-                </form>
-            </div>
-             <!-- Notes List -->
-            <div>
-                <h2 class="text-2xl font-bold mb-6">Your Notes</h2>
-                <div id="notes-list" class="space-y-4">
-                    <!-- Notes will be dynamically inserted here -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Edit Note Modal -->
-    <div id="edit-modal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0">
-        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
-        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
-            <div class="modal-content py-4 text-left px-6">
-                <div class="flex justify-between items-center pb-3">
-                    <p class="text-2xl font-bold">Edit Note</p>
-                    <button id="close-modal-button" class="cursor-pointer z-50">
-                        <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path></svg>
-                    </button>
-                </div>
-                <form id="edit-note-form">
-                    <input type="hidden" id="edit-note-id">
-                    <div class="mb-4">
-                         <label for="edit-note-title" class="block mb-2 text-sm font-medium">Title</label>
-                        <input id="edit-note-title" type="text" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                    </div>
-                    <div class="mb-4">
-                         <label for="edit-note-content" class="block mb-2 text-sm font-medium">Content</label>
-                        <textarea id="edit-note-content" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4"></textarea>
-                    </div>
-                    <div class="flex justify-end pt-2">
-                        <button type="submit" class="px-4 bg-indigo-600 p-3 rounded-lg text-white hover:bg-indigo-700">Update Note</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <div id="loading-spinner" class="hidden fixed top-0 left-0 w-full h-full bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
     </div>
 
+    <div class="absolute top-0 left-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob"></div>
+    <div class="absolute top-0 right-0 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-20 left-20 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob animation-delay-4000"></div>
+
+    <div class="relative">
+        <nav class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <a href="#" class="flex items-center gap-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <i data-lucide="notebook-pen"></i>
+                        <span>NoteVault</span>
+                    </a>
+                    <div class="flex items-center gap-4">
+                        <button id="theme-toggle" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        </button>
+                        <button id="logout-button" class="hidden bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-transform hover:scale-105">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-4xl mx-auto mt-10 p-6">
+            <div id="notification-container" class="fixed top-20 right-5 z-50"></div>
+            <div id="auth-view" class="opacity-0 animate-fade-in-up">
+                <div class="max-w-md mx-auto bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-8 rounded-2xl shadow-lg">
+                    <div class="mb-6 flex border-b dark:border-gray-600">
+                        <button id="show-login-btn" class="flex-1 py-2 font-semibold text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400">Login</button>
+                        <button id="show-register-btn" class="flex-1 py-2 font-semibold text-gray-500 dark:text-gray-400">Register</button>
+                    </div>
+                    <form id="login-form">
+                        <fieldset class="space-y-6">
+                            <legend class="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">Welcome Back!</legend>
+                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Username"></div>
+                            <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Password"></div>
+                        </fieldset>
+                        <div class="mt-6"><button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"> <i data-lucide="log-in" class="w-5 h-5"></i><span>Login</span></button></div>
+                    </form>
+                    <form id="register-form" class="hidden">
+                        <fieldset class="space-y-4">
+                            <legend class="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">Create Account</legend>
+                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Choose a username"></div>
+                            <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Choose a password"></div>
+                        </fieldset>
+                        <div class="mt-6"><button type="submit" class="w-full bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i><span>Sign Up</span></button></div>
+                    </form>
+                </div>
+            </div>
+            <div id="notes-view" class="hidden opacity-0 animate-fade-in-up">
+                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-8 rounded-2xl shadow-lg w-full mb-12">
+                    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Create a New Note</h1>
+                    <form id="note-form">
+                        <div class="mb-4"><input id="note-title" type="text" required class="w-full px-4 py-3 border-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Note Title"></div>
+                        <div class="mb-4"><textarea id="note-content" required class="w-full px-4 py-3 border-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4" placeholder="What's on your mind?"></textarea></div>
+                        <div><button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i><span>Add Note</span></button></div>
+                    </form>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Your Notes</h2>
+                    <div id="notes-list"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Edit Modal -->
+        <div id="edit-modal" class="modal modal-hidden fixed w-full h-full top-0 left-0 flex items-center justify-center">
+            <div class="modal-overlay absolute w-full h-full bg-gray-900/60"></div>
+            <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto">
+                <div class="modal-content py-4 text-left px-6">
+                    <div class="flex justify-between items-center pb-3">
+                        <p class="text-2xl font-bold dark:text-white">Edit Note</p>
+                        <button id="close-modal-button" class="cursor-pointer z-50 p-2 text-black dark:text-white"><i data-lucide="x"></i></button>
+                    </div>
+                    <form id="edit-note-form">
+                        <input type="hidden" id="edit-note-id">
+                        <div class="mb-4"><input id="edit-note-title" type="text" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"></div>
+                        <div class="mb-4"><textarea id="edit-note-content" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4"></textarea></div>
+                        <div class="flex justify-end pt-2"><button type="submit" class="px-4 bg-indigo-600 p-3 rounded-lg text-white hover:bg-indigo-700 flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i><span>Update Note</span></button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center py-10 mt-10">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Made with ❤️ by Ashwini</p>
+        </footer>
+    </div>
 
     <script>
-        // --- Basic Setup ---
         const API_URL = 'http://127.0.0.1:5000';
         let token = localStorage.getItem('token');
-
-        // --- DOM Element References ---
+        let macyInstance = null;
         const authView = document.getElementById('auth-view');
         const notesView = document.getElementById('notes-view');
         const logoutButton = document.getElementById('logout-button');
-        const notificationArea = document.getElementById('notification');
+        const notificationContainer = document.getElementById('notification-container');
         const notesList = document.getElementById('notes-list');
         const editModal = document.getElementById('edit-modal');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const themeToggle = document.getElementById('theme-toggle');
 
-        // --- UI Helper Functions ---
-        const showNotification = (message, type = 'success') => {
-            notificationArea.textContent = message;
-            notificationArea.className = `p-4 mb-4 text-sm rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
-            notificationArea.classList.remove('hidden');
-            setTimeout(() => notificationArea.classList.add('hidden'), 3000);
+        const setInitialTheme = () => { 
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
+                document.documentElement.classList.add('dark'); 
+                themeToggle.innerHTML = '<i data-lucide="moon" class="w-5 h-5"></i>'; 
+            } else { 
+                document.documentElement.classList.remove('dark'); 
+                themeToggle.innerHTML = '<i data-lucide="sun" class="w-5 h-5"></i>'; 
+            } 
+            lucide.createIcons(); 
         };
+        themeToggle.addEventListener('click', () => { 
+            const isDark = document.documentElement.classList.toggle('dark'); 
+            localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
+            if (isDark) { 
+                themeToggle.innerHTML = '<i data-lucide="moon" class="w-5 h-5"></i>'; 
+            } else { 
+                themeToggle.innerHTML = '<i data-lucide="sun" class="w-5 h-5"></i>'; 
+            } 
+            lucide.createIcons(); 
+        });
+
+        const showNotification = (message, type = 'success') => { 
+            const notification = document.createElement('div'); 
+            notification.textContent = message; 
+            const colors = type === 'success' 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'; 
+            notification.className = `p-4 mb-4 text-sm rounded-lg shadow-lg animate-fade-in-up ${colors}`; 
+            notificationContainer.appendChild(notification); 
+            setTimeout(() => { 
+                notification.style.animation = 'fadeOut 0.5s ease-out forwards'; 
+                setTimeout(() => notification.remove(), 500); 
+            }, 5000); 
+        };
+
+        const updateUI = () => { 
+            if (token) { 
+                authView.classList.add('hidden'); 
+                notesView.classList.remove('hidden'); 
+                notesView.style.opacity = '1'; 
+                logoutButton.classList.remove('hidden'); 
+                fetchNotes(); 
+            } else { 
+                authView.classList.remove('hidden'); 
+                authView.style.opacity = '1'; 
+                notesView.classList.add('hidden'); 
+                logoutButton.classList.add('hidden'); 
+            } 
+        };
+
+        const toggleModal = () => editModal.classList.toggle('modal-hidden');
+
+        const apiFetch = async (endpoint, method = 'GET', body = null) => { 
+            loadingSpinner.classList.remove('hidden'); 
+            const headers = { 'Content-Type': 'application/json' }; 
+            if (token) headers['Authorization'] = `Bearer ${token}`; 
+            const options = { method, headers }; 
+            if (body) options.body = JSON.stringify(body); 
+            try { 
+                const response = await fetch(`${API_URL}${endpoint}`, options); 
+                if (response.status === 401) { 
+                    handleLogout(); 
+                    showNotification('Your session has expired. Please log in again.', 'error'); 
+                    return null; 
+                } 
+                return response.json(); 
+            } catch (error) { 
+                console.error('API Fetch Error:', error); 
+                showNotification('Could not connect to the server.', 'error'); 
+                return null; 
+            } finally { 
+                loadingSpinner.classList.add('hidden'); 
+            } 
+        };
+
+        const fetchNotes = async () => { 
+            const notes = await apiFetch('/notes'); 
+            if (notes) { 
+                renderNotes(notes); 
+                if (macyInstance && notes.length > 0) { 
+                    macyInstance.recalculate(true); 
+                } else if (!macyInstance && notes.length > 0) { 
+                    macyInstance = Macy({ 
+                        container: '#notes-list', 
+                        trueOrder: false, 
+                        waitForImages: false, 
+                        margin: 24, 
+                        columns: 3, 
+                        breakAt: { 1024: 2, 768: 1 }, 
+                    }); 
+                } 
+            } 
+        };
+
+        const renderNotes = (notes) => { 
+            notesList.innerHTML = ''; 
+            if (notes.length === 0) { 
+                notesList.innerHTML = `<div class="col-span-full text-center p-8"><svg class="w-48 h-48 mx-auto text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg><p class="mt-4 text-gray-500 dark:text-gray-400 text-lg">No notes yet. Start by creating one!</p></div>`; 
+                return; 
+            } 
+            notes.forEach(note => { 
+                const noteCard = document.createElement('div'); 
+                noteCard.className = 'bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 transform transition duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-in-up break-inside-avoid'; 
+                noteCard.innerHTML = `<h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-100">${note.title}</h3><p class="text-gray-600 dark:text-gray-300 mb-4">${note.content}</p><div class="flex gap-2"><button class="edit-note-btn flex items-center gap-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition"><i data-lucide="edit-2" class="w-4 h-4"></i> Edit</button><button class="delete-note-btn flex items-center gap-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button></div>`; 
+                noteCard.querySelector('.edit-note-btn').addEventListener('click', () => { 
+                    document.getElementById('edit-note-id').value = note.id; 
+                    document.getElementById('edit-note-title').value = note.title; 
+                    document.getElementById('edit-note-content').value = note.content; 
+                    toggleModal(); 
+                    lucide.createIcons(); 
+                }); 
+                noteCard.querySelector('.delete-note-btn').addEventListener('click', async () => { 
+                    const result = await apiFetch(`/notes/${note.id}`, 'DELETE'); 
+                    if (result && result.message) { 
+                        showNotification('Note deleted successfully.'); 
+                        fetchNotes(); 
+                    } else { 
+                        showNotification('Failed to delete note.', 'error'); 
+                    } 
+                }); 
+                notesList.appendChild(noteCard); 
+            }); 
+            lucide.createIcons(); 
+        };
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => { 
+            e.preventDefault(); 
+            const username = document.getElementById('login-username').value; 
+            const password = document.getElementById('login-password').value; 
+            const data = await apiFetch('/login', 'POST', { username, password }); 
+            if (data && data.access_token) { 
+                token = data.access_token; 
+                localStorage.setItem('token', token); 
+                updateUI(); 
+                showNotification('Login successful!'); 
+            } else { 
+                showNotification('Invalid login credentials.', 'error'); 
+            } 
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => { 
+    e.preventDefault(); 
+       const username = document.getElementById('register-username').value; 
+       const password = document.getElementById('register-password').value; 
+        const data = await apiFetch('/register', 'POST', { username, password }); 
+        if (data && data.message) { 
+            showNotification('Registration successful! Please login.'); 
+            document.getElementById('register-form').reset(); 
+            document.getElementById('show-login-btn').click(); 
+        } 
+        else { 
+            showNotification('Registration failed.', 'error'); 
+        } 
+    });
+
         
-        const updateUI = () => {
-            if (token) {
-                authView.classList.add('hidden');
-                notesView.classList.remove('hidden');
-                logoutButton.classList.remove('hidden');
-                fetchNotes();
-            } else {
-                authView.classList.remove('hidden');
-                notesView.classList.add('hidden');
-                logoutButton.classList.add('hidden');
-            }
-        };
 
-        const toggleModal = () => {
-            editModal.classList.toggle('opacity-0');
-            editModal.classList.toggle('pointer-events-none');
-        }
+        document.getElementById('note-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('note-title').value;
+    const content = document.getElementById('note-content').value;
+    const data = await apiFetch('/notes', 'POST', { title, content });
 
-        // --- API Call Functions ---
-        const apiFetch = async (endpoint, method = 'GET', body = null) => {
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-            const options = { method, headers };
-            if (body) {
-                options.body = JSON.stringify(body);
-            }
-            try {
-                const response = await fetch(`${API_URL}${endpoint}`, options);
-                if (response.status === 401) { // Unauthorized
-                    handleLogout();
-                    showNotification('Your session has expired. Please log in again.', 'error');
-                    return null;
-                }
-                return response.json();
-            } catch (error) {
-                console.error('API Fetch Error:', error);
-                showNotification('Could not connect to the server.', 'error');
-                return null;
-            }
-        };
-
-        const fetchNotes = async () => {
-            const notes = await apiFetch('/notes');
-            if (notes) {
-                renderNotes(notes);
-            }
-        };
-
-        const handleRegister = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('register-username').value;
-            const password = document.getElementById('register-password').value;
-            const data = await apiFetch('/register', 'POST', { username, password });
-            if (data && data.msg === "User created Successfully") {
-                showNotification('Registration successful! Please log in.');
-                e.target.reset();
-            } else {
-                showNotification(data?.msg || 'Registration failed.', 'error');
-            }
-        };
-
-        const handleLogin = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-            const data = await apiFetch('/login', 'POST', { username, password });
-            if (data && data.access_token) {
-                token = data.access_token;
-                localStorage.setItem('token', token);
-                updateUI();
-                showNotification('Logged in successfully!');
-            } else {
-                showNotification(data?.msg || 'Login failed.', 'error');
-            }
-        };
-
-        const handleLogout = () => {
-            token = null;
-            localStorage.removeItem('token');
-            notesList.innerHTML = '';
-            updateUI();
-            showNotification('You have been logged out.');
-        };
+    // CORRECTED LOGIC
+    if (data && data.id) { // A successful note creation returns the new note object, which has an id
+        showNotification('Note added successfully!');
+        e.target.reset(); // or document.getElementById('note-form').reset();
+        fetchNotes(); // Refresh the notes list to show the new one
+    } else {
+        showNotification(data?.error || 'Failed to create note.', 'error');
+    }
+});
         
-        const handleCreateNote = async (e) => {
-            e.preventDefault();
-            const title = document.getElementById('note-title').value;
-            const content = document.getElementById('note-content').value;
-            const newNote = await apiFetch('/notes', 'POST', { title, content });
-            if (newNote && !newNote.error) {
-                fetchNotes(); // Re-fetch all notes to display the new one
-                e.target.reset();
-                showNotification('Note created!');
-            } else {
-                showNotification('Failed to create note.', 'error');
-            }
-        };
+        document.getElementById('edit-note-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Get the data from the modal's form fields
+    const id = document.getElementById('edit-note-id').value;
+    const title = document.getElementById('edit-note-title').value;
+    const content = document.getElementById('edit-note-content').value;
 
-        const handleDeleteNote = async (noteId) => {
-            const result = await apiFetch(`/notes/${noteId}`, 'DELETE');
-            if(result && result.message) {
-                fetchNotes();
-                showNotification('Note deleted.');
-            } else {
-                showNotification('Could not delete note.', 'error');
-            }
-        };
-        
-        const openEditModal = (note) => {
-            document.getElementById('edit-note-id').value = note.id;
-            document.getElementById('edit-note-title').value = note.title;
-            document.getElementById('edit-note-content').value = note.content;
-            toggleModal();
-        };
+    // Send the data to the server using the PUT method
+    const data = await apiFetch(`/notes/${id}`, 'PUT', { title, content });
 
-        const handleUpdateNote = async (e) => {
-            e.preventDefault();
-            const noteId = document.getElementById('edit-note-id').value;
-            const title = document.getElementById('edit-note-title').value;
-            const content = document.getElementById('edit-note-content').value;
-            const updatedNote = await apiFetch(`/notes/${noteId}`, 'PUT', { title, content });
+    if (data && data.id) {
+        showNotification('Note updated successfully!');
+        toggleModal(); // Close the modal
+        fetchNotes();  // Refresh the notes list to show the change
+    } else {
+        showNotification('Failed to update note.', 'error');
+    }
+});
 
-            if(updatedNote && !updatedNote.msg) {
-                toggleModal();
-                fetchNotes();
-                showNotification('Note updated successfully!');
-            } else {
-                showNotification(updatedNote?.msg || 'Failed to update note.', 'error');
-            }
-        };
+        document.getElementById('show-login-btn').addEventListener('click', () => { 
+            document.getElementById('login-form').classList.remove('hidden'); 
+            document.getElementById('register-form').classList.add('hidden'); 
+            document.getElementById('show-login-btn').classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
+            document.getElementById('show-register-btn').classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
+            document.getElementById('show-register-btn').classList.add('text-gray-500', 'dark:text-gray-400'); 
+        });
+        document.getElementById('show-register-btn').addEventListener('click', () => { 
+            document.getElementById('login-form').classList.add('hidden'); 
+            document.getElementById('register-form').classList.remove('hidden'); 
+            document.getElementById('show-register-btn').classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
+            document.getElementById('show-login-btn').classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
+            document.getElementById('show-login-btn').classList.add('text-gray-500', 'dark:text-gray-400'); 
+        });
 
-        // --- Rendering Logic ---
-        const renderNotes = (notes) => {
-            notesList.innerHTML = '';
-            if (notes.length === 0) {
-                 notesList.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center">
-                    <p class="text-gray-500">You don't have any notes yet. Add one above!</p>
-                </div>`;
-                return;
-            }
-            notes.forEach(note => {
-                const noteElement = document.createElement('div');
-                noteElement.className = 'bg-white p-6 rounded-lg shadow-md';
-                noteElement.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-lg mb-2">${note.title}</h3>
-                            <p class="text-gray-700 whitespace-pre-wrap">${note.content}</p>
-                            <p class="text-xs text-gray-400 mt-4">${new Date(note.created_at).toLocaleString()}</p>
-                        </div>
-                        <div class="flex space-x-2 ml-4 flex-shrink-0">
-                            <button class="edit-btn text-blue-500 hover:text-blue-700 font-semibold">Edit</button>
-                            <button class="delete-btn text-red-500 hover:text-red-700 font-semibold">Delete</button>
-                        </div>
-                    </div>
-                `;
-                noteElement.querySelector('.delete-btn').addEventListener('click', () => handleDeleteNote(note.id));
-                noteElement.querySelector('.edit-btn').addEventListener('click', () => openEditModal(note));
-                notesList.appendChild(noteElement);
-            });
-        };
-
-        // --- Event Listeners ---
-        document.getElementById('login-form').addEventListener('submit', handleLogin);
-        document.getElementById('register-form').addEventListener('submit', handleRegister);
-        document.getElementById('note-form').addEventListener('submit', handleCreateNote);
-        document.getElementById('edit-note-form').addEventListener('submit', handleUpdateNote);
-        logoutButton.addEventListener('click', handleLogout);
-        
-        // Modal close listeners
-        document.querySelector('.modal-overlay').addEventListener('click', toggleModal);
         document.getElementById('close-modal-button').addEventListener('click', toggleModal);
-        
-        // --- Initial Load ---
-        updateUI();
+        document.querySelector('.modal-overlay').addEventListener('click', toggleModal);
+        logoutButton.addEventListener('click', () => { handleLogout(); showNotification('You have logged out.'); });
+        const handleLogout = () => { 
+            token = null; 
+            localStorage.removeItem('token'); 
+            updateUI(); 
+        };
 
+        document.addEventListener('DOMContentLoaded', () => { 
+            setInitialTheme(); 
+            lucide.createIcons(); 
+            updateUI(); 
+        });
     </script>
 </body>
 </html>
-
