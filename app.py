@@ -9,6 +9,7 @@ from flask_mail import Mail, Message
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity
 from flask_migrate import Migrate
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from sqlalchemy import or_ 
 
 
 # --- App Initialization ---
@@ -120,8 +121,8 @@ def register():
     # --- Send verification email ---
     token = s.dumps(email, salt='email-confirm')
     link = url_for('verify_email', token=token, _external=True)
-    msg = Message('Confirm Your Email', recipients=[email])
-    msg.body = f'Your verification link is {link}'
+    msg = Message('Please Confirm Your Email For NoteVault', recipients=[email])
+    msg.body = f'Click on the verification link is {link}'
     mail.send(msg)
     # --- End of email sending ---
 
@@ -143,8 +144,6 @@ def verify_email(token):
 
 
 
-
-from sqlalchemy import or_ # Import 'or_' at the top of your file
 
 @app.route('/login', methods=['POST'])
 def login():
