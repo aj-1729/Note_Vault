@@ -36,28 +36,28 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 min-h-screen transition-colors duration-500">
+<body class="bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-red-900 min-h-screen transition-colors duration-500">
 
     <div id="loading-spinner" class="hidden fixed top-0 left-0 w-full h-full bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
     </div>
 
-    <div class="absolute top-0 left-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob"></div>
-    <div class="absolute top-0 right-0 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob animation-delay-2000"></div>
-    <div class="absolute bottom-20 left-20 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob animation-delay-4000"></div>
+    <div class="absolute top-0 left-0 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob"></div>
+    <div class="absolute top-0 right-0 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-20 left-20 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 dark:opacity-20 animate-blob animation-delay-4000"></div>
 
     <div class="relative">
         <nav class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
-                    <a href="#" class="flex items-center gap-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                    <a href="#" class="flex items-center gap-2 text-2xl font-bold text-red-600 dark:text-red-400">
                         <i data-lucide="notebook-pen"></i>
                         <span>NoteVault</span>
                     </a>
                     <div class="flex items-center gap-4">
                         <button id="theme-toggle" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
                         </button>
-                        <button id="logout-button" class="hidden bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-transform hover:scale-105">
+                        <button id="logout-button" class="hidden bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-transform hover:scale-105">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                             <span>Logout</span>
                         </button>
@@ -71,23 +71,23 @@
             <div id="auth-view" class="opacity-0 animate-fade-in-up">
                 <div class="max-w-md mx-auto bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-8 rounded-2xl shadow-lg">
                     <div class="mb-6 flex border-b dark:border-gray-600">
-                        <button id="show-login-btn" class="flex-1 py-2 font-semibold text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400">Login</button>
+                        <button id="show-login-btn" class="flex-1 py-2 font-semibold text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400">Login</button>
                         <button id="show-register-btn" class="flex-1 py-2 font-semibold text-gray-500 dark:text-gray-400">Register</button>
                     </div>
                     <form id="login-form">
                         <fieldset class="space-y-6">
                             <legend class="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">Welcome Back!</legend>
-                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Username or Email"></div>
-                            <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Password"></div>
+                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Username or Email"></div>
+                            <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="login-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Password"></div>
                         </fieldset>
-                        <div class="mt-6"><button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"> <i data-lucide="log-in" class="w-5 h-5"></i><span>Login</span></button></div>
+                        <div class="mt-6"><button type="submit" class="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"> <i data-lucide="log-in" class="w-5 h-5"></i><span>Login</span></button></div>
                     </form>
                     <form id="register-form" class="hidden">
                         <fieldset class="space-y-4">
                             <legend class="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">Create Account</legend>
-                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Choose a username"></div>
-                            <div class="relative"><i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-email" type="email" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Enter your email"></div>
-                            <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Choose a password"></div>
+                            <div class="relative"><i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-username" type="text" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Choose a username"></div>
+                            <div class="relative"><i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-email" type="email" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Enter your email"></div>
+                            <div class="relative"><i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i><input id="register-password" type="password" required class="w-full pl-10 pr-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Choose a password"></div>
                         </fieldset>
                         <div class="mt-6"><button type="submit" class="w-full bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i><span>Sign Up</span></button></div>
                     </form>
@@ -97,9 +97,9 @@
                 <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-8 rounded-2xl shadow-lg w-full mb-12">
                     <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Create a New Note</h1>
                     <form id="note-form">
-                        <div class="mb-4"><input id="note-title" type="text" required class="w-full px-4 py-3 border-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Note Title"></div>
-                        <div class="mb-4"><textarea id="note-content" required class="w-full px-4 py-3 border-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4" placeholder="What's on your mind?"></textarea></div>
-                        <div><button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i><span>Add Note</span></button></div>
+                        <div class="mb-4"><input id="note-title" type="text" required class="w-full px-4 py-3 border-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Note Title"></div>
+                        <div class="mb-4"><textarea id="note-content" required class="w-full px-4 py-3 border-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400" rows="4" placeholder="What's on your mind?"></textarea></div>
+                        <div><button type="submit" class="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i><span>Add Note</span></button></div>
                     </form>
                 </div>
                 <div>
@@ -111,7 +111,7 @@
 
         <div id="edit-modal" class="modal modal-hidden fixed w-full h-full top-0 left-0 flex items-center justify-center">
             <div class="modal-overlay absolute w-full h-full bg-gray-900/60"></div>
-            <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto">
+            <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded-tl-2xl rounded-tr-2xl rounded-br-2xl shadow-lg z-50 overflow-y-auto">
                 <div class="modal-content py-4 text-left px-6">
                     <div class="flex justify-between items-center pb-3">
                         <p class="text-2xl font-bold dark:text-white">Edit Note</p>
@@ -119,9 +119,9 @@
                     </div>
                     <form id="edit-note-form">
                         <input type="hidden" id="edit-note-id">
-                        <div class="mb-4"><input id="edit-note-title" type="text" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"></div>
-                        <div class="mb-4"><textarea id="edit-note-content" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" rows="4"></textarea></div>
-                        <div class="flex justify-end pt-2"><button type="submit" class="px-4 bg-indigo-600 p-3 rounded-lg text-white hover:bg-indigo-700 flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i><span>Update Note</span></button></div>
+                        <div class="mb-4"><input id="edit-note-title" type="text" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400"></div>
+                        <div class="mb-4"><textarea id="edit-note-content" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400" rows="4"></textarea></div>
+                        <div class="flex justify-end pt-2"><button type="submit" class="px-4 bg-red-600 p-3 rounded-lg text-white hover:bg-red-700 flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i><span>Update Note</span></button></div>
                     </form>
                 </div>
             </div>
@@ -133,7 +133,8 @@
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:5000';
+        
+        const API_URL = 'https://aj1729.pythonanywhere.com';
         let token = localStorage.getItem('token');
         let macyInstance = null;
         const authView = document.getElementById('auth-view');
@@ -248,7 +249,7 @@
             notes.forEach(note => { 
                 const noteCard = document.createElement('div'); 
                 noteCard.className = 'bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 transform transition duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-in-up break-inside-avoid'; 
-                noteCard.innerHTML = `<h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-100">${note.title}</h3><p class="text-gray-600 dark:text-gray-300 mb-4">${note.content}</p><div class="flex gap-2"><button class="edit-note-btn flex items-center gap-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition"><i data-lucide="edit-2" class="w-4 h-4"></i> Edit</button><button class="delete-note-btn flex items-center gap-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button></div>`; 
+                noteCard.innerHTML = `<h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-gray-100">${note.title}</h3><p class="text-gray-600 dark:text-gray-300 mb-4">${note.content}</p><div class="flex gap-2"><button class="edit-note-btn flex items-center gap-1 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition"><i data-lucide="edit-2" class="w-4 h-4"></i> Edit</button><button class="delete-note-btn flex items-center gap-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button></div>`; 
                 noteCard.querySelector('.edit-note-btn').addEventListener('click', () => { 
                     document.getElementById('edit-note-id').value = note.id; 
                     document.getElementById('edit-note-title').value = note.title; 
@@ -285,7 +286,6 @@
             } 
         });
 
-        // === UPDATED REGISTER FORM LISTENER ===
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('register-username').value;
@@ -336,18 +336,19 @@
             }
         });
 
+        // Updated Tab Switching Logic to use 'red'
         document.getElementById('show-login-btn').addEventListener('click', () => { 
             document.getElementById('login-form').classList.remove('hidden'); 
             document.getElementById('register-form').classList.add('hidden'); 
-            document.getElementById('show-login-btn').classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
-            document.getElementById('show-register-btn').classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
+            document.getElementById('show-login-btn').classList.add('text-red-600', 'border-b-2', 'border-red-600'); 
+            document.getElementById('show-register-btn').classList.remove('text-red-600', 'border-b-2', 'border-red-600'); 
             document.getElementById('show-register-btn').classList.add('text-gray-500', 'dark:text-gray-400'); 
         });
         document.getElementById('show-register-btn').addEventListener('click', () => { 
             document.getElementById('login-form').classList.add('hidden'); 
             document.getElementById('register-form').classList.remove('hidden'); 
-            document.getElementById('show-register-btn').classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
-            document.getElementById('show-login-btn').classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600'); 
+            document.getElementById('show-register-btn').classList.add('text-red-600', 'border-b-2', 'border-red-600'); 
+            document.getElementById('show-login-btn').classList.remove('text-red-600', 'border-b-2', 'border-red-600'); 
             document.getElementById('show-login-btn').classList.add('text-gray-500', 'dark:text-gray-400'); 
         });
 

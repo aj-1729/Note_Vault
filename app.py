@@ -9,9 +9,7 @@ from flask_mail import Mail, Message
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity
 from flask_migrate import Migrate
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
-from sqlalchemy import or_ 
-
-
+from cryptography.fernet import Fernet
 # --- App Initialization ---
 app = Flask(__name__)
 CORS(app) # Enable Cross-Origin Resource Sharing
@@ -74,13 +72,15 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    encryption_key = db.Column(db.LargeBinary, nullable=False)
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.Text, nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    #owner = db.relationship('User' , backref=db.backref('notes' , lazy=True))
 
     def to_dict(self):
         """Serializes the Note object to a dictionary."""
@@ -91,13 +91,23 @@ class Note(db.Model):
             'created_at': self.created_at.isoformat() + 'Z'
         }
 
-# --- API Routes ---
+
+from flask import Flask, jsonify, request, url_for
+
+def encrypt_data(data, key):
+   
+    f = Fernet(key)
+    return f.encrypt(data.encode('utf-8')).decode('utf-8')
+
+def decrypt_data(encrypt_data, key):
+   
+    f = Fernet(key)
+    return f.decrypt(encrypt_data.encode('utf-8')).decode('utf-8')
 
 @app.route('/')
 def health_check():
     """Health check endpoint to confirm the API is running."""
     return jsonify({"status": "API is running!"}), 200
-
 # --- User Authentication Routes ---
 @app.route('/register', methods=['POST'])
 def register():
@@ -114,7 +124,9 @@ def register():
         return jsonify({"message": "Email already registered"}), 409
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_user = User(username=username, email=email, password=hashed_password)
+
+    encryption_key = Fernet.generate_key()
+    new_user = User(username=username, email=email, password=hashed_password ,encryption_key=encryption_key)
     db.session.add(new_user)
     db.session.commit()
 
@@ -173,49 +185,109 @@ def login():
 def get_notes():
     """Get all notes for the current user, with optional title search."""
     current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
     title_keyword = request.args.get('title')
     query = Note.query.filter_by(user_id=current_user_id).order_by(Note.created_at.desc())
+
     if title_keyword:
-        query = query.filter(Note.title.ilike(f'%{title_keyword}%'))
-    notes = query.all()
-    return jsonify([note.to_dict() for note in notes])
+        all_notes = query.all()
+        decrypted_notes = []
+        for note in all_notes:
+            try:
+                decrypted_title = decrypt_data(note.title, user.encryption_key)
+                if title_keyword.lower() in decrypted_title.lower():
+                    decrypted_notes.append({
+                        'id': note.id,
+                        'title': decrypted_title,
+                        'content': decrypt_data(note.content, user.encryption_key),
+                        'created_at': note.created_at.isoformat() + 'Z'
+                    })
+            except Exception:
+                continue 
+        return jsonify(decrypted_notes)
+    else:
+        notes = query.all()
+        decrypted_notes = [
+            {
+                'id': note.id,
+                'title': decrypt_data(note.title, user.encryption_key),
+                'content': decrypt_data(note.content, user.encryption_key),
+                'created_at': note.created_at.isoformat() + 'Z'
+            } for note in notes
+        ]
+        return jsonify(decrypted_notes)
 
 @app.route('/notes/<int:note_id>', methods=['GET'])
 @jwt_required()
 def get_note(note_id):
     """Get a single note by its ID."""
     current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
     note = Note.query.filter_by(id=note_id, user_id=current_user_id).first()
     if not note:
         return jsonify({"msg": "Note not found"}), 404
-    return jsonify(note.to_dict())
+    
+    decrypted_note = {
+        'id': note.id,
+        'title': decrypt_data(note.title, user.encryption_key),
+        'content': decrypt_data(note.content, user.encryption_key),
+        'created_at': note.created_at.isoformat() + 'Z'
+    }
+    return jsonify(decrypted_note)
 
 @app.route('/notes', methods=['POST'])
 @jwt_required()
 def create_note():
     """Create a new note."""
     current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
     data = request.get_json()
     if not data or 'title' not in data or 'content' not in data:
         return jsonify({'error': 'Bad Request: Missing title or content'}), 400
-    new_note = Note(title=data['title'], content=data['content'], user_id=current_user_id)
+    
+
+    encrypted_title = encrypt_data(data['title'], user.encryption_key)
+    encrypted_content = encrypt_data(data['content'], user.encryption_key)
+
+    new_note = Note(title=encrypted_title, content=encrypted_content, user_id=current_user_id)
+    
     db.session.add(new_note)
     db.session.commit()
-    return jsonify(new_note.to_dict()), 201
+
+    response_data = {
+        'id': new_note.id,
+        'title': data['title'],
+        'content': data['content'],
+        'created_at': new_note.created_at.isoformat() + 'Z'
+    }
+    return jsonify(response_data), 201
 
 @app.route('/notes/<int:note_id>', methods=['PUT'])
 @jwt_required()
 def update_note(note_id):
     """Update an existing note."""
     current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
     note = Note.query.filter_by(id=note_id, user_id=current_user_id).first()
     if not note:
         return jsonify({"msg": "Note not found"}), 404
+    
+
     data = request.get_json()
-    note.title = data.get('title', note.title)
-    note.content = data.get('content', note.content)
+    if 'title' in data:
+        note.title = encrypt_data(data['title'], user.encryption_key)
+    if 'content' in data:
+        note.content = encrypt_data(data['content'], user.encryption_key)
     db.session.commit()
-    return jsonify(note.to_dict())
+
+    decrypted_note = {
+        'id': note.id,
+        'title': decrypt_data(note.title, user.encryption_key),
+        'content': decrypt_data(note.content, user.encryption_key),
+        'created_at': note.created_at.isoformat() + 'Z'
+    }
+
+    return jsonify(decrypted_note)
 
 @app.route('/notes/<int:note_id>', methods=['DELETE'])
 @jwt_required()
