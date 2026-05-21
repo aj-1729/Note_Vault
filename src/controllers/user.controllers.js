@@ -73,4 +73,4 @@ const verifyEmail = asyncHandler(
     }
 )
 
-export{registerUser}
+export{registerUser,verifyEmail}
