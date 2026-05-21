@@ -1,1 +1,1 @@
-export const DB_NAME = "notevault"
+export const DB_NAME = "vault1"
