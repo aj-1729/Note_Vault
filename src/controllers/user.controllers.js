@@ -1,17 +1,20 @@
-import { User } from "../models/users.models";
-import ApiError from "../utils/Apierror";
-import Apiresponse from "../utils/Apiresponse";
-import { asyncHandler } from "../utils/asyncHandler";
-
+import { User } from "../models/users.models.js";
+import ApiError from "../utils/Apierror.js";
+import Apiresponse from "../utils/Apiresponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import crypto from "node:crypto";
 
 const registerUser = asyncHandler(
     async(req,res)=>
     {
         const {email,username,password} = req.body;
+
         if(email === "" || password === "" || username === "")
             throw new ApiError(402, "All feilds are requiered!!");
 
-        const userExists = await User.findOne({email:email});
+        const userExists = await User.findOne({
+            $or: [{ email: email }, { username: username }]
+        });
         
 
         if(userExists)
@@ -19,7 +22,7 @@ const registerUser = asyncHandler(
 
         const verificationToken = crypto.randomBytes(20).toString('hex');
 
-        const user = await User(
+        const user = new User(
             {
                 username,
                 email,
@@ -34,8 +37,10 @@ const registerUser = asyncHandler(
         if(!user)
             throw new ApiError(400, "User data invalid");
 
-        const verifyUrl = `http://localhost:5000/api/v1/users/verify/${verificationToken}`;
+        const verifyUrl = `http://localhost:8000/api/v1/users/verify/${verificationToken}`;
         console.log(verifyUrl)
+
+       // user.select("-password -verificationToken")
 
 
         return res.status(200).json(
@@ -51,14 +56,14 @@ const verifyEmail = asyncHandler(
     {
         const user = await User.findOne(
             {
-                verificationToken = req.params.token,
-                verificationTokenExpire = {$gt: Date.now()}
+                verificationToken : req.params.token,
+                verificationTokenExpire : {$gt: Date.now()}
             }
         )
 
 
         if(!user)
-            return new ApiError(402, "Invalid token or expired token");
+            throw new ApiError(402, "Invalid token or expired token");
 
         user.isVerified = true;
         user.verificationToken = undefined;
