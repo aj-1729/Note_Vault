@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
     {
-        usernname:{
+        username:{
             type: String,
             required: [true, 'Username is required'],
             unique: true,
@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema(
         }
     },
     {
-        timestamps = true
+        timestamps : true
     }
 )
 
