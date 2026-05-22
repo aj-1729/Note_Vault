@@ -1,12 +1,12 @@
 import { Router } from "express";
 
-import { registerUser, verifyEmail } from "../controllers/user.controllers.js";
+import { registerUser, verifyEmail, loginUser } from "../controllers/user.controllers.js";
 
 const router = Router()
 
 
 router.route("/register").post(registerUser);
-//router.route("/login").post(loginUser);
+router.route("/login").post(loginUser);
 router.route("/verify/:token").get(verifyEmail);
 
 

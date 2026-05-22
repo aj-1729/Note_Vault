@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Password is required'],
             minlength: 6,
-            select: false
+           // select: false
         },
         isVerified: {
             type: Boolean,
@@ -36,6 +36,9 @@ const userSchema = new mongoose.Schema(
         },
         verificationTokenExpire: {
             type: Date
+        },
+        refreshToken: {
+             type: String
         }
     },
     {
@@ -60,7 +63,7 @@ userSchema.methods.generateAccessToken = async function (){
             _id: this._id,
             email: this.email,
             username: this.username,
-            fullName: this.fullName 
+            //fullName: this.fullName 
         },
         process.env.ACCESS_TOKEN_SECRET,
         {

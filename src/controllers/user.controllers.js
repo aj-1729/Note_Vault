@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs";
 const generateAccessRefreshToken = async(userId) => 
 {
     try {
-        const user = await User.findById({userId});
+        const user = await User.findById(userId);
 
         const accessToken = await user.generateAccessToken();
         const refreshToken = await user.generateRefreshToken();
@@ -119,7 +119,29 @@ const loginUser = asyncHandler(
         if(!isPasswordCorrect)
             throw new ApiError(404,"Incorrect Password");
 
-        const {accessToken,refreshToken} = generateAccessRefreshToken(user._id);
+        const {accessToken,refreshToken} = await generateAccessRefreshToken(user._id);
+
+        const loggedInUser = await User.findById(user._id).select("-password");
+
+        const options={
+            httpOnly: true,
+            secure: true
+        }
+
+        return res.status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new Apiresponse(202,
+                {
+                    user: loggedInUser,
+                    accessToken,
+                    refreshToken
+                },
+                "Yay logged in success!!"
+            )
+        )
+
     }
 )
 export{registerUser,
