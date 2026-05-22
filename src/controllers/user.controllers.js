@@ -3,6 +3,26 @@ import ApiError from "../utils/Apierror.js";
 import Apiresponse from "../utils/Apiresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import crypto from "node:crypto";
+import bcrypt from "bcryptjs";
+
+const generateAccessRefreshToken = async(userId) => 
+{
+    try {
+        const user = await User.findById({userId});
+
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+
+        await user.save({validateBeforeSave: false});
+
+    
+        return {accessToken, refreshToken};
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong will generating RAT");
+    }
+}
 
 const registerUser = asyncHandler(
     async(req,res)=>
@@ -78,4 +98,31 @@ const verifyEmail = asyncHandler(
     }
 )
 
-export{registerUser,verifyEmail}
+const loginUser = asyncHandler(
+    async(req,res)=>
+    {
+        const{email, password}=req.body;
+
+        if(!email || !password)
+            throw new ApiError(402,"all fields are requiered");
+
+        const user = await User.findOne({email})
+
+        if(!user)
+            throw new ApiError(402,"user not found");
+
+        if(!user.isVerified)
+            throw new ApiError(404,"Email is not verified!!!")
+
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+        if(!isPasswordCorrect)
+            throw new ApiError(404,"Incorrect Password");
+
+        const {accessToken,refreshToken} = generateAccessRefreshToken(user._id);
+    }
+)
+export{registerUser,
+verifyEmail,
+loginUser,
+}
