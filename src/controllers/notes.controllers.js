@@ -29,4 +29,24 @@ const createNote = asyncHandler(
     }
 )
 
-export {createNote}
+const getUserNote = asyncHandler(
+    async(req,res)=>{
+        const note = await Note.find({owner: req.user._id}).sort({createdAt:-1});
+
+        if(!note)
+            throw new ApiError(402, "Something went wrong while fetching the notes!!");
+
+        return res
+        .status(200)
+        .json(
+            new Apiresponse(202,
+                "Notes fetched successfully",
+                {
+                    note
+                }
+            )
+        )
+    }
+)
+
+export {createNote,getUserNote}
