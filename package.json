@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
@@ -22,6 +21,7 @@
   "homepage": "https://github.com/aj-1729/Note_Vault#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
