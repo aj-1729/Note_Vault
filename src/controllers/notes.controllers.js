@@ -73,4 +73,24 @@ const updateNote = asyncHandler(
         )
     }
 )
-export {createNote,getUserNote}
+
+const deleteNote = asyncHandler(async (req, res) => {
+    const { noteId } = req.params;
+
+    // Find the note and delete it ONLY if the logged-in user owns it
+    const note = await Note.findOneAndDelete({ _id: noteId, owner: req.user._id });
+
+    if (!note) {
+        throw new ApiError(404, "Note not found or you do not have permission to delete it");
+    }
+
+    return res.status(200).json(
+        new Apiresponse(200, "Note deleted successfully!", {})
+    );
+})
+
+
+export {createNote,
+    getUserNote,
+updateNote,
+deleteNote}
