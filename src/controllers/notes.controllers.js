@@ -49,4 +49,28 @@ const getUserNote = asyncHandler(
     }
 )
 
+const updateNote = asyncHandler(
+    async(req,res)=>
+    {
+        const {noteId} = req.params;
+        const {title, content, tags} = req.body;
+
+        const note = await  Note.findOne({_id: noteId, owner: req.user._id});
+
+        if(!note)
+            throw new ApiError(402,"Note Not found / invalid permisiions");
+
+        if(title) note.title = title;
+        if(content) note.content = content;
+        if(tags) note.tags = tags;
+
+        await note.save();
+
+        return res.
+        status(200)
+        .json(
+            new Apiresponse(202, "Note updated Successfully!!", {note})
+        )
+    }
+)
 export {createNote,getUserNote}
