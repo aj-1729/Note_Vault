@@ -6,6 +6,6 @@ const router = Router();
 
 router.route("/create").post(verifyJWT,createNote)
 router.route("/all").get(verifyJWT,getUserNote)
-router.route("/update/:noteId").get(verifyJWT,updateNote)
-router.route("/delete/:noteId").get(verifyJWT,deleteNote)
+router.route("/update/:noteId").put(verifyJWT,updateNote)
+router.route("/delete/:noteId").delete(verifyJWT,deleteNote)
 export default router
