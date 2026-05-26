@@ -1,6 +1,10 @@
 import {v2 as cloudinary} from 'cloudinary';
+import dotenv from "dotenv";
+dotenv.config();
 
-import fs from 'fs';
+
+import ApiError from './Apierror.js';
+
 
 cloudinary.config({ 
 
@@ -17,7 +21,7 @@ const uploadToCloudinary = async (noteContent)=>
         if(!noteContent) return null;
 
         const conContent = Buffer.from(noteContent).toString('base64');
-        const dataURI = `data:text/plain;base64,${base64Content}`;
+        const dataURI = `data:text/plain;base64,${conContent}`;
 
         const response = await cloudinary.uploader.upload(dataURI,{
             resource_type:"auto",
