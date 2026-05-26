@@ -30,3 +30,5 @@ const uploadToCloudinary = async (noteContent)=>
         throw new ApiError(500, "Failed to upload note to secure storage");
     }
 }
+
+export{uploadToCloudinary}

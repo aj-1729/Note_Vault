@@ -2,6 +2,7 @@ import { Note } from "../models/notes.models.js";
 import ApiError from "../utils/Apierror.js";
 import Apiresponse from "../utils/Apiresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 
 const createNote = asyncHandler(
@@ -11,9 +12,13 @@ const createNote = asyncHandler(
         if(!title || !content)
             throw new ApiError(404, "Both title and contents are reqiuered");
 
+        const contentUrl = await uploadToCloudinary(content);
+
+        if(!contentUrl)
+            throw new ApiError(500,"error saving the notes!! ");
         const note = await Note.create({
             title,
-            content,
+            content:contentUrl,
             tags : tags || [],
             owner: req.user._id,
         })
