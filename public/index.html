@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Vault - Zero Knowledge Storage</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <div id="app-container">
+        <section id="auth-view" class="view active">
+            <div class="auth-box">
+                <h1>Note Vault</h1>
+                <p>Zero-Knowledge Encrypted Storage</p>
+                
+                <form id="login-form">
+                    <input type="email" id="email" placeholder="Email Address" required>
+                    <input type="password" id="password" placeholder="Master Password" required>
+                    <button type="submit">Unlock Vault</button>
+                </form>
+                <div id="auth-message" class="message"></div>
+            </div>
+        </section>
+
+        <section id="dashboard-view" class="view hidden">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>My Vault</h2>
+                    <button id="btn-new-note" class="btn-secondary">+ New Note</button>
+                </div>
+                <ul id="notes-list">
+                    </ul>
+                <div class="sidebar-footer">
+                    <button id="btn-logout" class="btn-danger">Lock Vault (Logout)</button>
+                </div>
+            </aside>
+
+            <main class="editor-area">
+                <div id="editor-container" class="hidden">
+                    <input type="text" id="note-title" placeholder="Note Title...">
+                    <input type="text" id="note-tags" placeholder="Tags (comma separated)...">
+                    <textarea id="note-content" placeholder="Write your secret note here..."></textarea>
+                    
+                    <div class="editor-actions">
+                        <button id="btn-save-note" class="btn-primary">Save Securely</button>
+                        <button id="btn-delete-note" class="btn-danger hidden">Delete Permanently</button>
+                    </div>
+                    <div id="editor-message" class="message"></div>
+                </div>
+                <div id="empty-state">
+                    <p>Select a note or create a new one.</p>
+                </div>
+            </main>
+        </section>
+    </div>
+
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>
