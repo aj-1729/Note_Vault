@@ -71,11 +71,11 @@ const updateNote = asyncHandler(
 
         if (content) {
         
-        const newContentUrl = await uploadContentToCloudinary(content);
+            const newContentUrl = await uploadContentToCloudinary(content);
         
-        if (!newContentUrl) {
-            throw new ApiError(500, "Failed to upload updated note to secure storage");
-        }
+            if (!newContentUrl) {
+                throw new ApiError(500, "Failed to upload updated note to secure storage");
+            }
         
         note.content = newContentUrl; 
     }
