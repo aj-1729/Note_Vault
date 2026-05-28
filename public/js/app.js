@@ -1,198 +1,339 @@
 // public/js/app.js
+// Uses crypto.Utils.js for client-side AES-GCM encryption/decryption
 import { API } from "./api.js";
-import { encryptNote, decryptNote } from "./utils/cryptoUtils.js";
+import { encryptNote, decryptNote } from "./utils/crypto.Utils.js";
 
-// Global Volatile State (Never saved to localStorage)
-const AppState = {
+// ─── App State ───────────────────────────────────────────────────────────────
+const State = {
     userEmail: null,
     masterPassword: null,
-    activeNotes: [],
-    currentOpenNoteId: null 
+    notes: [],
+    currentNoteId: null,
 };
 
-// --- DOM ELEMENTS ---
-const authView = document.getElementById('auth-view');
-const dashboardView = document.getElementById('dashboard-view');
-const loginForm = document.getElementById('login-form');
-const authMessage = document.getElementById('auth-message');
-const notesListEl = document.getElementById('notes-list');
-const editorContainer = document.getElementById('editor-container');
-const emptyState = document.getElementById('empty-state');
-const editorMessage = document.getElementById('editor-message');
+// ─── DOM Refs ─────────────────────────────────────────────────────────────────
+const authView        = document.getElementById("auth-view");
+const dashboardView   = document.getElementById("dashboard-view");
 
-const titleInput = document.getElementById('note-title');
-const tagsInput = document.getElementById('note-tags');
-const contentInput = document.getElementById('note-content');
+// Auth tabs
+const tabLogin        = document.getElementById("tab-login");
+const tabRegister     = document.getElementById("tab-register");
+const panelLogin      = document.getElementById("panel-login");
+const panelRegister   = document.getElementById("panel-register");
 
-// --- EVENT LISTENERS ---
+// Login form
+const loginForm       = document.getElementById("login-form");
+const loginEmail      = document.getElementById("login-email");
+const loginPassword   = document.getElementById("login-password");
+const loginMessage    = document.getElementById("login-message");
 
-// 1. Handle Login
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    authMessage.textContent = "Unlocking vault...";
-    
-    try {
-        const res = await API.login(email, password);
-        if (!res.success) throw new Error(res.message);
+// Register form
+const registerForm    = document.getElementById("register-form");
+const regUsername     = document.getElementById("reg-username");
+const regEmail        = document.getElementById("reg-email");
+const regPassword     = document.getElementById("reg-password");
+const registerMessage = document.getElementById("register-message");
 
-        // Store keys securely in JS memory for this session
-        AppState.userEmail = email;
-        AppState.masterPassword = password;
-        
-        // Switch Views
-        authView.classList.remove('active');
-        dashboardView.classList.add('active');
-        
-        await loadDashboard();
-    } catch (err) {
-        authMessage.textContent = err.message;
-        authMessage.style.color = "var(--danger)";
-    }
-});
+// Dashboard
+const notesList       = document.getElementById("notes-list");
+const searchInput     = document.getElementById("search-notes");
+const userEmailDisplay = document.getElementById("user-email-display");
+const emptyState      = document.getElementById("empty-state");
+const editorContainer = document.getElementById("editor-container");
+const noteTitleInput  = document.getElementById("note-title");
+const noteTagsInput   = document.getElementById("note-tags");
+const noteContentInput = document.getElementById("note-content");
+const editorMessage   = document.getElementById("editor-message");
+const btnNewNote      = document.getElementById("btn-new-note");
+const btnSaveNote     = document.getElementById("btn-save-note");
+const btnDeleteNote   = document.getElementById("btn-delete-note");
+const btnLogout       = document.getElementById("btn-logout");
 
-// 2. Handle Logout
-document.getElementById('btn-logout').addEventListener('click', async () => {
-    await API.logout();
-    // Wipe memory
-    AppState.userEmail = null;
-    AppState.masterPassword = null;
-    AppState.activeNotes = [];
-    AppState.currentOpenNoteId = null;
-    
-    // Switch views
-    dashboardView.classList.remove('active');
-    authView.classList.add('active');
-    loginForm.reset();
-    authMessage.textContent = "Vault locked.";
-});
-
-// 3. Setup New Note UI
-document.getElementById('btn-new-note').addEventListener('click', () => {
-    AppState.currentOpenNoteId = null;
-    titleInput.value = '';
-    tagsInput.value = '';
-    contentInput.value = '';
-    
-    emptyState.classList.add('hidden');
-    editorContainer.classList.remove('hidden');
-    document.getElementById('btn-delete-note').classList.add('hidden'); // Can't delete a new note
-    editorMessage.textContent = '';
-});
-
-// 4. Save/Update Note
-document.getElementById('btn-save-note').addEventListener('click', async () => {
-    const title = titleInput.value;
-    const content = contentInput.value;
-    const tags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t); // clean tags
-    
-    if (!title || !content) {
-        editorMessage.textContent = "Title and content are required.";
-        return;
-    }
-
-    editorMessage.textContent = "Encrypting and saving...";
-    
-    try {
-        // ZERO-KNOWLEDGE ENCRYPTION: Scramble before network transmission!
-        const cipherPayload = await encryptNote(content, AppState.masterPassword, AppState.userEmail);
-
-        let res;
-        if (AppState.currentOpenNoteId) {
-            // Update existing Note Pointer
-            res = await API.updateNote(AppState.currentOpenNoteId, title, cipherPayload, tags);
-        } else {
-            // Create New Note Pointer
-            res = await API.createNote(title, cipherPayload, tags);
-        }
-
-        if (!res.success) throw new Error(res.message);
-        
-        editorMessage.textContent = "Saved securely!";
-        editorMessage.style.color = "var(--accent)";
-        await loadDashboard(); // Refresh sidebar
-        
-    } catch (err) {
-        editorMessage.textContent = err.message;
-        editorMessage.style.color = "var(--danger)";
-    }
-});
-
-// 5. Delete Note
-document.getElementById('btn-delete-note').addEventListener('click', async () => {
-    if (!AppState.currentOpenNoteId) return;
-    
-    if(confirm("Are you sure you want to permanently delete this note?")) {
-        try {
-            await API.deleteNote(AppState.currentOpenNoteId);
-            AppState.currentOpenNoteId = null;
-            editorContainer.classList.add('hidden');
-            emptyState.classList.remove('hidden');
-            await loadDashboard();
-        } catch (err) {
-            alert("Failed to delete note.");
-        }
-    }
-});
-
-
-// --- CORE LOGIC FUNCTIONS ---
-
-async function loadDashboard() {
-    try {
-        const res = await API.getAllNotes();
-        if (!res.success) throw new Error(res.message);
-        
-        AppState.activeNotes = res.data.notes;
-        renderNotesSidebar();
-    } catch (err) {
-        console.error("Failed to load notes", err);
-    }
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function showMsg(el, text, type = "") {
+    el.textContent = text;
+    el.className = "form-message" + (type ? ` ${type}` : "");
 }
 
-function renderNotesSidebar() {
-    notesListEl.innerHTML = '';
-    AppState.activeNotes.forEach(note => {
-        const li = document.createElement('li');
-        li.className = 'note-item';
-        li.innerHTML = `
-            <h4>${note.title}</h4>
-            <small>${new Date(note.updatedAt).toLocaleDateString()}</small>
-        `;
-        
-        // When clicking a note in the sidebar
-        li.addEventListener('click', () => openNote(note));
-        notesListEl.appendChild(li);
+function showEditorMsg(text, type = "") {
+    editorMessage.textContent = text;
+    editorMessage.className = "editor-message" + (type ? ` ${type}` : "");
+}
+
+function formatDate(iso) {
+    return new Date(iso).toLocaleDateString("en-IN", {
+        day: "numeric", month: "short", year: "numeric",
     });
 }
 
-async function openNote(noteData) {
-    AppState.currentOpenNoteId = noteData._id;
-    editorMessage.textContent = "Decrypting securely...";
-    
-    emptyState.classList.add('hidden');
-    editorContainer.classList.remove('hidden');
-    document.getElementById('btn-delete-note').classList.remove('hidden');
+function switchView(view) {
+    if (view === "auth") {
+        authView.classList.add("active");
+        dashboardView.classList.remove("active");
+    } else {
+        authView.classList.remove("active");
+        dashboardView.classList.add("active");
+    }
+}
 
-    titleInput.value = noteData.title;
-    tagsInput.value = noteData.tags ? noteData.tags.join(', ') : "";
-    contentInput.value = "Loading encrypted data...";
+// ─── Tab switching ────────────────────────────────────────────────────────────
+tabLogin.addEventListener("click", () => {
+    tabLogin.classList.add("active");
+    tabRegister.classList.remove("active");
+    panelLogin.classList.add("active");
+    panelRegister.classList.remove("active");
+    tabLogin.setAttribute("aria-selected", "true");
+    tabRegister.setAttribute("aria-selected", "false");
+    loginMessage.textContent = "";
+});
+
+tabRegister.addEventListener("click", () => {
+    tabRegister.classList.add("active");
+    tabLogin.classList.remove("active");
+    panelRegister.classList.add("active");
+    panelLogin.classList.remove("active");
+    tabRegister.setAttribute("aria-selected", "true");
+    tabLogin.setAttribute("aria-selected", "false");
+    registerMessage.textContent = "";
+});
+
+// ─── Login ────────────────────────────────────────────────────────────────────
+loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email    = loginEmail.value.trim();
+    const password = loginPassword.value;
+
+    if (!email || !password) {
+        showMsg(loginMessage, "Please fill in all fields.", "error");
+        return;
+    }
+
+    showMsg(loginMessage, "Logging in…");
+    try {
+        const res = await API.login(email, password);
+        if (!res.success) throw new Error(res.message || "Login failed.");
+
+        State.userEmail = email;
+        State.masterPassword = password;
+
+        switchView("dashboard");
+        userEmailDisplay.textContent = email;
+        await loadNotes();
+    } catch (err) {
+        showMsg(loginMessage, err.message, "error");
+    }
+});
+
+// ─── Register ────────────────────────────────────────────────────────────────
+registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = regUsername.value.trim();
+    const email    = regEmail.value.trim();
+    const password = regPassword.value;
+
+    if (!username || !email || !password) {
+        showMsg(registerMessage, "All fields are required.", "error");
+        return;
+    }
+
+    showMsg(registerMessage, "Creating account…");
+    try {
+        const res = await API.register(username, email, password);
+        if (!res.success) throw new Error(res.message || "Registration failed.");
+
+        showMsg(
+            registerMessage,
+            "Account created! Check the server terminal for your verification link, then log in.",
+            "success"
+        );
+        registerForm.reset();
+    } catch (err) {
+        showMsg(registerMessage, err.message, "error");
+    }
+});
+
+// ─── Logout ───────────────────────────────────────────────────────────────────
+btnLogout.addEventListener("click", async () => {
+    await API.logout().catch(() => {});
+    State.userEmail = null;
+    State.masterPassword = null;
+    State.notes = [];
+    State.currentNoteId = null;
+
+    notesList.innerHTML = "";
+    loginForm.reset();
+    loginMessage.textContent = "";
+    showEditorTab(false);
+
+    switchView("auth");
+});
+
+// ─── New Note ─────────────────────────────────────────────────────────────────
+btnNewNote.addEventListener("click", () => {
+    State.currentNoteId = null;
+    noteTitleInput.value = "";
+    noteTagsInput.value = "";
+    noteContentInput.value = "";
+    showEditorTab(true);
+    btnDeleteNote.classList.add("hidden");
+    showEditorMsg("");
+    setActiveNoteItem(null);
+    noteTitleInput.focus();
+});
+
+// ─── Save Note ────────────────────────────────────────────────────────────────
+btnSaveNote.addEventListener("click", async () => {
+    const title   = noteTitleInput.value.trim();
+    const content = noteContentInput.value;
+    const tags    = noteTagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
+
+    if (!title) {
+        showEditorMsg("Title is required.", "error");
+        return;
+    }
+    if (!content) {
+        showEditorMsg("Content cannot be empty.", "error");
+        return;
+    }
+
+    showEditorMsg("Encrypting and saving…");
+    btnSaveNote.disabled = true;
 
     try {
-        // POINTER ARCHITECTURE: Fetch ciphertext from Cloudinary URL
-        const cloudinaryUrl = noteData.content; 
-        const fileResponse = await fetch(cloudinaryUrl);
-        const cipherTextString = await fileResponse.text();
+        // Encrypt content client-side before sending to server
+        const cipherPayload = await encryptNote(content, State.masterPassword, State.userEmail);
 
-        // DECRYPTION: Unpack it directly in the browser!
-        const plainText = await decryptNote(cipherTextString, AppState.masterPassword, AppState.userEmail);
-        
-        contentInput.value = plainText;
-        editorMessage.textContent = "";
+        let res;
+        if (State.currentNoteId) {
+            res = await API.updateNote(State.currentNoteId, title, cipherPayload, tags);
+        } else {
+            res = await API.createNote(title, cipherPayload, tags);
+        }
+
+        if (!res.success) throw new Error(res.message || "Save failed.");
+
+        // If new note, grab its id
+        if (!State.currentNoteId && res.data?.note?._id) {
+            State.currentNoteId = res.data.note._id;
+        }
+
+        showEditorMsg("Saved.", "success");
+        btnDeleteNote.classList.remove("hidden");
+        await loadNotes();
     } catch (err) {
-        contentInput.value = "Error decrypting note.";
-        editorMessage.textContent = "Decryption failed. Password mismatch or corrupted data.";
+        showEditorMsg(err.message, "error");
+    } finally {
+        btnSaveNote.disabled = false;
     }
+});
+
+// ─── Delete Note ─────────────────────────────────────────────────────────────
+btnDeleteNote.addEventListener("click", async () => {
+    if (!State.currentNoteId) return;
+    if (!confirm("Delete this note permanently?")) return;
+
+    try {
+        const res = await API.deleteNote(State.currentNoteId);
+        if (!res.success) throw new Error(res.message || "Delete failed.");
+
+        State.currentNoteId = null;
+        showEditorTab(false);
+        await loadNotes();
+    } catch (err) {
+        showEditorMsg(err.message, "error");
+    }
+});
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    renderNotesList(
+        State.notes.filter(n => n.title.toLowerCase().includes(query))
+    );
+});
+
+// ─── Load / Render Notes ─────────────────────────────────────────────────────
+async function loadNotes() {
+    try {
+        const res = await API.getAllNotes();
+        if (!res.success) throw new Error(res.message || "Could not fetch notes.");
+        State.notes = res.data?.note || [];
+        renderNotesList(State.notes);
+    } catch (err) {
+        console.error("loadNotes error:", err);
+    }
+}
+
+function renderNotesList(notes) {
+    notesList.innerHTML = "";
+    if (!notes.length) {
+        const li = document.createElement("li");
+        li.className = "notes-empty";
+        li.textContent = "No notes yet.";
+        notesList.appendChild(li);
+        return;
+    }
+    notes.forEach(note => {
+        const li = document.createElement("li");
+        li.className = "note-item" + (note._id === State.currentNoteId ? " active" : "");
+        li.setAttribute("role", "listitem");
+        li.dataset.id = note._id;
+        li.innerHTML = `
+            <div class="note-item-title">${escapeHtml(note.title)}</div>
+            <div class="note-item-date">${formatDate(note.updatedAt)}</div>
+        `;
+        li.addEventListener("click", () => openNote(note));
+        notesList.appendChild(li);
+    });
+}
+
+function setActiveNoteItem(id) {
+    document.querySelectorAll(".note-item").forEach(el => {
+        el.classList.toggle("active", el.dataset.id === id);
+    });
+}
+
+// ─── Open / Decrypt Note ──────────────────────────────────────────────────────
+async function openNote(noteData) {
+    State.currentNoteId = noteData._id;
+    noteTitleInput.value = noteData.title;
+    noteTagsInput.value  = noteData.tags ? noteData.tags.join(", ") : "";
+    noteContentInput.value = "";
+    showEditorTab(true);
+    btnDeleteNote.classList.remove("hidden");
+    showEditorMsg("Decrypting…");
+    setActiveNoteItem(noteData._id);
+
+    try {
+        // The content field is a Cloudinary URL pointing to the encrypted text file
+        const fileResp = await fetch(noteData.content);
+        if (!fileResp.ok) throw new Error("Could not retrieve note file.");
+        const cipherText = await fileResp.text();
+        const plainText  = await decryptNote(cipherText, State.masterPassword, State.userEmail);
+        noteContentInput.value = plainText;
+        showEditorMsg("");
+    } catch (err) {
+        noteContentInput.value = "";
+        showEditorMsg("Decryption failed — wrong password or corrupted note.", "error");
+    }
+}
+
+// ─── Editor visibility ────────────────────────────────────────────────────────
+function showEditorTab(show) {
+    if (show) {
+        editorContainer.classList.remove("hidden");
+        emptyState.style.display = "none";
+    } else {
+        editorContainer.classList.add("hidden");
+        emptyState.style.display = "";
+    }
+}
+
+// ─── Escape HTML ─────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 }

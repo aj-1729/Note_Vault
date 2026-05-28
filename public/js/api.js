@@ -3,6 +3,15 @@ const BACKEND_URL = "http://localhost:8000/api/v1";
 
 export const API = {
     // --- AUTH ACTIONS ---
+
+    async register(username, email, password) {
+        const response = await fetch(`${BACKEND_URL}/users/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password })
+        });
+        return await response.json();
+    },
     async login(email, password) {
         const response = await fetch(`${BACKEND_URL}/users/login`, {
             method: "POST",
@@ -15,7 +24,7 @@ export const API = {
 
     async logout() {
         const response = await fetch(`${BACKEND_URL}/users/logout`, {
-            method: "POST",
+            method: "GET",
             credentials: "include"
         });
         return await response.json();
