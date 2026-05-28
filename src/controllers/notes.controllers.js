@@ -66,8 +66,19 @@ const updateNote = asyncHandler(
             throw new ApiError(402,"Note Not found / invalid permisiions");
 
         if(title) note.title = title;
-        if(content) note.content = content;
+        
         if(tags) note.tags = tags;
+
+        if (content) {
+        
+        const newContentUrl = await uploadContentToCloudinary(content);
+        
+        if (!newContentUrl) {
+            throw new ApiError(500, "Failed to upload updated note to secure storage");
+        }
+        
+        note.content = newContentUrl; 
+    }
 
         await note.save();
 
