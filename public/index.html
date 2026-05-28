@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note Vault — Secure Notes</title>
-    <meta name="description" content="Note Vault: a zero-knowledge encrypted note storage system. Login or create an account to securely store your notes.">
+    <meta name="description"
+        content="Note Vault: a zero-knowledge encrypted note storage system. Login or create an account to securely store your notes.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/styles.css">
 </head>
+
 <body>
     <div id="app">
 
@@ -18,11 +21,13 @@
         <section id="auth-view" class="view active">
             <div class="auth-card">
                 <div class="auth-brand">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <rect x="4" y="13" width="24" height="17" rx="3" fill="#1a1a1a"/>
-                        <path d="M10 13V10a6 6 0 0 1 12 0v3" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
-                        <circle cx="16" cy="21" r="2" fill="#fff"/>
-                        <line x1="16" y1="23" x2="16" y2="26" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <rect x="4" y="13" width="24" height="17" rx="3" fill="#1a1a1a" />
+                        <path d="M10 13V10a6 6 0 0 1 12 0v3" stroke="#1a1a1a" stroke-width="2.5"
+                            stroke-linecap="round" />
+                        <circle cx="16" cy="21" r="2" fill="#fff" />
+                        <line x1="16" y1="23" x2="16" y2="26" stroke="#fff" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     <h1>Note Vault</h1>
                 </div>
@@ -30,8 +35,10 @@
 
                 <!-- Tabs -->
                 <div class="tab-bar" role="tablist">
-                    <button id="tab-login" class="tab active" role="tab" aria-selected="true" aria-controls="panel-login">Login</button>
-                    <button id="tab-register" class="tab" role="tab" aria-selected="false" aria-controls="panel-register">Register</button>
+                    <button id="tab-login" class="tab active" role="tab" aria-selected="true"
+                        aria-controls="panel-login">Login</button>
+                    <button id="tab-register" class="tab" role="tab" aria-selected="false"
+                        aria-controls="panel-register">Register</button>
                 </div>
 
                 <!-- Login Panel -->
@@ -39,11 +46,13 @@
                     <form id="login-form" novalidate>
                         <div class="field">
                             <label for="login-email">Email</label>
-                            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email" required>
+                            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email"
+                                required>
                         </div>
                         <div class="field">
                             <label for="login-password">Password</label>
-                            <input type="password" id="login-password" placeholder="Your master password" autocomplete="current-password" required>
+                            <input type="password" id="login-password" placeholder="Your master password"
+                                autocomplete="current-password" required>
                         </div>
                         <button type="submit" id="btn-login" class="btn-primary btn-full">Login</button>
                     </form>
@@ -55,15 +64,18 @@
                     <form id="register-form" novalidate>
                         <div class="field">
                             <label for="reg-username">Username</label>
-                            <input type="text" id="reg-username" placeholder="Choose a username" autocomplete="username" required>
+                            <input type="text" id="reg-username" placeholder="Choose a username" autocomplete="username"
+                                required>
                         </div>
                         <div class="field">
                             <label for="reg-email">Email</label>
-                            <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email" required>
+                            <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email"
+                                required>
                         </div>
                         <div class="field">
                             <label for="reg-password">Password</label>
-                            <input type="password" id="reg-password" placeholder="Create a strong password" autocomplete="new-password" required>
+                            <input type="password" id="reg-password" placeholder="Create a strong password"
+                                autocomplete="new-password" required>
                         </div>
                         <button type="submit" id="btn-register" class="btn-primary btn-full">Create Account</button>
                     </form>
@@ -81,18 +93,23 @@
             <aside class="sidebar">
                 <div class="sidebar-top">
                     <div class="sidebar-brand">
-                        <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <rect x="4" y="13" width="24" height="17" rx="3" fill="#1a1a1a"/>
-                            <path d="M10 13V10a6 6 0 0 1 12 0v3" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
-                            <circle cx="16" cy="21" r="2" fill="#fff"/>
-                            <line x1="16" y1="23" x2="16" y2="26" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                        <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <rect x="4" y="13" width="24" height="17" rx="3" fill="#1a1a1a" />
+                            <path d="M10 13V10a6 6 0 0 1 12 0v3" stroke="#1a1a1a" stroke-width="2.5"
+                                stroke-linecap="round" />
+                            <circle cx="16" cy="21" r="2" fill="#fff" />
+                            <line x1="16" y1="23" x2="16" y2="26" stroke="#fff" stroke-width="2"
+                                stroke-linecap="round" />
                         </svg>
                         <span>Note Vault</span>
                     </div>
                     <button id="btn-new-note" class="btn-new" title="New Note">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                            <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                            <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
                         </svg>
                         New Note
                     </button>
@@ -114,11 +131,12 @@
             <main class="editor-main">
                 <!-- Empty State -->
                 <div id="empty-state" class="empty-state">
-                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <rect x="8" y="6" width="32" height="36" rx="4" stroke="#ccc" stroke-width="2"/>
-                        <line x1="15" y1="16" x2="33" y2="16" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="15" y1="22" x2="33" y2="22" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="15" y1="28" x2="25" y2="28" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <rect x="8" y="6" width="32" height="36" rx="4" stroke="#ccc" stroke-width="2" />
+                        <line x1="15" y1="16" x2="33" y2="16" stroke="#ccc" stroke-width="2" stroke-linecap="round" />
+                        <line x1="15" y1="22" x2="33" y2="22" stroke="#ccc" stroke-width="2" stroke-linecap="round" />
+                        <line x1="15" y1="28" x2="25" y2="28" stroke="#ccc" stroke-width="2" stroke-linecap="round" />
                     </svg>
                     <p>Select a note or create a new one</p>
                 </div>
@@ -126,23 +144,27 @@
                 <!-- Editor -->
                 <div id="editor-container" class="editor-container hidden">
                     <div class="editor-header">
-                        <input type="text" id="note-title" class="note-title-input" placeholder="Note title…" aria-label="Note title">
+                        <input type="text" id="note-title" class="note-title-input" placeholder="Note title…"
+                            aria-label="Note title">
                         <div class="editor-header-actions">
                             <button id="btn-save-note" class="btn-primary">Save</button>
                             <button id="btn-delete-note" class="btn-danger hidden" title="Delete note">Delete</button>
                         </div>
                     </div>
                     <div class="tags-row">
-                        <input type="text" id="note-tags" class="tags-input" placeholder="Tags: work, ideas, personal…" aria-label="Tags">
+                        <input type="text" id="note-tags" class="tags-input" placeholder="Tags: work, ideas, personal…"
+                            aria-label="Tags">
                     </div>
-                    <textarea id="note-content" class="note-content" placeholder="Start writing your note here…" aria-label="Note content"></textarea>
+                    <textarea id="note-content" class="note-content" placeholder="Start writing your note here…"
+                        aria-label="Note content"></textarea>
                     <div id="editor-message" class="editor-message" role="status" aria-live="polite"></div>
                 </div>
             </main>
         </section>
 
     </div>
-
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="./js/app.js"></script>
 </body>
+
 </html>
