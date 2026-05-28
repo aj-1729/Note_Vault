@@ -123,9 +123,9 @@ const loginUser = asyncHandler(
 
         const loggedInUser = await User.findById(user._id).select("-password");
 
-        const options={
+        const options = {
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === "production" // false on localhost (HTTP), true in prod (HTTPS)
         }
 
         return res.status(200)
@@ -164,7 +164,7 @@ const logoutUser = asyncHandler(
 
         const options = {
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === "production"
         }
 
         return res.status(200)
