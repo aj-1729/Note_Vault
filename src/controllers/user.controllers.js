@@ -3,9 +3,10 @@ import ApiError from "../utils/Apierror.js";
 import Apiresponse from "../utils/Apiresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import crypto from "node:crypto";
-import bcrypt from "bcryptjs";import { sendEmail } from "../utils/sendEmails.js";
-import { use } from "react";
-S
+import bcrypt from "bcryptjs";
+import { sendEmail } from "../utils/sendEmails.js";
+//import { use } from "react";
+
 
 const generateAccessRefreshToken = async(userId) => 
 {
@@ -81,9 +82,15 @@ const registerUser = asyncHandler(
             `
         })
 
+        const nuser = new User({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+
+        })
 
         return res.status(200).json(
-            new Apiresponse(202,"User registered!!, check the terminal for verification link!",{user}
+            new Apiresponse(202,"User registered!!, check the terminal for verification link!",{nuser}
             )
                  
         )
@@ -109,10 +116,15 @@ const verifyEmail = asyncHandler(
         user.verificationTokenExpire = undefined;
 
         await user.save();
+        const nuser = new User({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
 
+        })
         res.status(200)
         .json(
-            new Apiresponse(202, "User created successfully", {user})
+            new Apiresponse(202, "User created successfully", {nuser})
         )
     }
 )
