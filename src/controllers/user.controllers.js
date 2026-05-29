@@ -3,7 +3,9 @@ import ApiError from "../utils/Apierror.js";
 import Apiresponse from "../utils/Apiresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import crypto from "node:crypto";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";import { sendEmail } from "../utils/sendEmails.js";
+import { use } from "react";
+S
 
 const generateAccessRefreshToken = async(userId) => 
 {
@@ -58,9 +60,26 @@ const registerUser = asyncHandler(
             throw new ApiError(400, "User data invalid");
 
         const verifyUrl = `http://localhost:8000/api/v1/users/verify/${verificationToken}`;
-        console.log(verifyUrl)
+        //console.log(verifyUrl)
 
        // user.select("-password -verificationToken")
+
+        await sendEmail({
+            email: user.email,
+            subject: "NoteVault Email-Verification",
+            html:`
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #333; border-radius: 8px; background-color: #121212; color: #fff;">
+                    <h2 style="color: #00e676; text-align: center;">Welcome to Note Vault!</h2>
+                    <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
+                    <p style="font-size: 16px;">Your zero-knowledge vault has been forged. To ensure you are the true owner, please verify your email address by clicking the button below.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${verifyUrl}" style="background-color: #00e676; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">Verify My Vault</a>
+                    </div>
+                    <p style="font-size: 14px; color: #aaa;">This link will expire in 24 hours.</p>
+                    <p style="font-size: 14px; color: #aaa;">If you did not request this, please ignore this email.</p>
+                </div>
+            `
+        })
 
 
         return res.status(200).json(
@@ -144,7 +163,6 @@ const loginUser = asyncHandler(
 
     }
 )
-
 
 
 const logoutUser = asyncHandler(
