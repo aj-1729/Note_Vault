@@ -24,13 +24,13 @@ const uploadToCloudinary = async (noteContent)=>
         const dataURI = `data:text/plain;base64,${conContent}`;
 
         const response = await cloudinary.uploader.upload(dataURI,{
-            resource_type:"auto",
+            resource_type:"raw",
             folder: "Note_Vault"
         });
 
         return response.secure_url;
     } catch (error) {
-        console.error("Cloudinary upload failed:", error);
+        console.error("Cloudinary upload failed:", JSON.stringify(error?.error || error?.message || error));
         throw new ApiError(500, "Failed to upload note to secure storage");
     }
 }
