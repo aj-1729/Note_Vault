@@ -11,3 +11,14 @@ export const createUser = async (userData) => {
     const user = new User(userData);
     return await user.save();
 };
+
+export const findUserByVerificationToken = async (token) => {
+    return await User.findOne({
+        verificationToken: token,
+        verificationTokenExpire: { $gt: Date.now() }
+    });
+};
+
+export const updateUser = async (user) => {
+    return await user.save({ validateBeforeSave: false });
+};
