@@ -68,10 +68,6 @@ const getUserNote = asyncHandler(
         }
 
 
-
-
-
-
         const note = await Note.find({ owner: req.user._id }).sort({ createdAt: -1 });
 
         if (!note)
