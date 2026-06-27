@@ -5,11 +5,11 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { sendEmail } from "../utils/sendEmails.js";
+import { addEmailToQueue } from "../queues/emailQueues.js";
 //import { use } from "react";
 
 
-const generateAccessRefreshToken = async(userId) => 
-{
+const generateAccessRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId);
 
@@ -18,29 +18,28 @@ const generateAccessRefreshToken = async(userId) =>
 
         user.refreshToken = refreshToken;
 
-        await user.save({validateBeforeSave: false});
+        await user.save({ validateBeforeSave: false });
 
-    
-        return {accessToken, refreshToken};
+
+        return { accessToken, refreshToken };
     } catch (error) {
         throw new ApiError(500, "Something went wrong will generating RAT");
     }
 }
 
 const registerUser = asyncHandler(
-    async(req,res)=>
-    {
-        const {email,username,password} = req.body;
+    async (req, res) => {
+        const { email, username, password } = req.body;
 
-        if(email === "" || password === "" || username === "")
+        if (email === "" || password === "" || username === "")
             throw new ApiError(402, "All feilds are requiered!!");
 
         const userExists = await User.findOne({
             $or: [{ email: email }, { username: username }]
         });
-        
 
-        if(userExists)
+
+        if (userExists)
             throw new ApiError(402, "This email already exits");
 
         const verificationToken = crypto.randomBytes(20).toString('hex');
@@ -57,18 +56,22 @@ const registerUser = asyncHandler(
 
         await user.save();
 
-        if(!user)
+        if (!user)
             throw new ApiError(400, "User data invalid");
 
-        const verifyUrl = `http://localhost:8000/api/v1/users/verify/${verificationToken}`;
+        const baseUrl = process.env.NODE_ENV === "production"
+            ? "https://notevault-api.onrender.com"
+            : "http://localhost:8000";
+
+        const verifyUrl = `${baseUrl}/api/v1/users/verify/${verificationToken}`;
         //console.log(verifyUrl)
 
-       // user.select("-password -verificationToken")
+        // user.select("-password -verificationToken")
 
-        await sendEmail({
+        await addEmailToQueue({
             email: user.email,
             subject: "NoteVault Email-Verification",
-            html:`
+            html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #333; border-radius: 8px; background-color: #121212; color: #fff;">
                     <h2 style="color: #00e676; text-align: center;">Welcome to Note Vault!</h2>
                     <p style="font-size: 16px;">Hello <strong>${user.username}</strong>,</p>
@@ -90,25 +93,24 @@ const registerUser = asyncHandler(
         })
 
         return res.status(200).json(
-            new Apiresponse(202,"User registered!!, check the terminal for verification link!",{nuser}
+            new Apiresponse(202, "User registered!!, check the terminal for verification link!", { nuser }
             )
-                 
+
         )
     }
 )
 
 const verifyEmail = asyncHandler(
-    async(req,res)=>
-    {
+    async (req, res) => {
         const user = await User.findOne(
             {
-                verificationToken : req.params.token,
-                verificationTokenExpire : {$gt: Date.now()}
+                verificationToken: req.params.token,
+                verificationTokenExpire: { $gt: Date.now() }
             }
         )
 
 
-        if(!user)
+        if (!user)
             throw new ApiError(402, "Invalid token or expired token");
 
         user.isVerified = true;
@@ -123,34 +125,33 @@ const verifyEmail = asyncHandler(
 
         })
         res.status(200)
-        .json(
-            new Apiresponse(202, "User created successfully", {nuser})
-        )
+            .json(
+                new Apiresponse(202, "User created successfully", { nuser })
+            )
     }
 )
 
 const loginUser = asyncHandler(
-    async(req,res)=>
-    {
-        const{email, password}=req.body;
+    async (req, res) => {
+        const { email, password } = req.body;
 
-        if(!email || !password)
-            throw new ApiError(402,"all fields are requiered");
+        if (!email || !password)
+            throw new ApiError(402, "all fields are requiered");
 
-        const user = await User.findOne({email})
+        const user = await User.findOne({ email })
 
-        if(!user)
-            throw new ApiError(402,"user not found");
+        if (!user)
+            throw new ApiError(402, "user not found");
 
-        if(!user.isVerified)
-            throw new ApiError(404,"Email is not verified!!!")
+        if (!user.isVerified)
+            throw new ApiError(404, "Email is not verified!!!")
 
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-        if(!isPasswordCorrect)
-            throw new ApiError(404,"Incorrect Password");
+        if (!isPasswordCorrect)
+            throw new ApiError(404, "Incorrect Password");
 
-        const {accessToken,refreshToken} = await generateAccessRefreshToken(user._id);
+        const { accessToken, refreshToken } = await generateAccessRefreshToken(user._id);
 
         const loggedInUser = await User.findById(user._id).select("-password");
 
@@ -160,30 +161,29 @@ const loginUser = asyncHandler(
         }
 
         return res.status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new Apiresponse(202,
-                {
-                    user: loggedInUser,
-                    accessToken,
-                    refreshToken
-                },
-                "Yay logged in success!!"
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(
+                new Apiresponse(202,
+                    {
+                        user: loggedInUser,
+                        accessToken,
+                        refreshToken
+                    },
+                    "Yay logged in success!!"
+                )
             )
-        )
 
     }
 )
 
 
 const logoutUser = asyncHandler(
-    async (req,res) => 
-    {
+    async (req, res) => {
         await User.findByIdAndUpdate(
             req.user._id,
             {
-                $set:{
+                $set: {
                     refreshToken: undefined
                 }
             },
@@ -198,11 +198,11 @@ const logoutUser = asyncHandler(
         }
 
         return res.status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
-        .json(
-            new Apiresponse(200, {}, "User Logged Out!!")
-        )
+            .clearCookie("accessToken", options)
+            .clearCookie("refreshToken", options)
+            .json(
+                new Apiresponse(200, {}, "User Logged Out!!")
+            )
 
 
     }
@@ -210,8 +210,9 @@ const logoutUser = asyncHandler(
 
 
 
-export{registerUser,
-verifyEmail,
-loginUser,
-logoutUser
+export {
+    registerUser,
+    verifyEmail,
+    loginUser,
+    logoutUser
 }

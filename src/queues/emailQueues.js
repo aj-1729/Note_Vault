@@ -6,7 +6,7 @@ const connection = new IORedis();
 export const emailQueue = new Queue('emailQueue', { connection });
 
 
-const addEmailToQueue = async (emailData) => {
+export const addEmailToQueue = async (emailData) => {
     await emailQueue.add("send-verification-email",
         emailData,
         {

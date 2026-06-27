@@ -1,8 +1,10 @@
 import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
-import { sendEmail } from '../utils/sendEmails';
+import { sendEmail } from '../utils/sendEmails.js';
 
-const connection = new IORedis();
+const connection = new IORedis({
+    maxRetriesPerRequest: null
+});
 
 
 export const emailWorker = new Worker("email-queue", async (job) => {
