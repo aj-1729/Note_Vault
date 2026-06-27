@@ -21,6 +21,7 @@
   "homepage": "https://github.com/aj-1729/Note_Vault#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.1",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
