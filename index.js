@@ -5,6 +5,20 @@ import { connectDB } from "./src/db/index.js";
 import { app } from "./app.js";
 import http from "http";
 import { Server } from "socket.io";
+import Redis from "ioredis";
+
+
+const redis = new Redis();
+
+redis.on("connect", () => {
+    console.log("Connected to Redis");
+})
+
+redis.on("error", (error) => {
+    console.error("Error: Redis connection failed!!", error);
+})
+
+
 
 dotenv.config({ path: "./.env" })
 const server = http.createServer(app);
