@@ -1,13 +1,19 @@
 import { Queue } from 'bullmq';
-import IORedis from 'ioredis';
+import { getBullMQConnection } from '../db/redis.js';
 
-const connection = new IORedis();
+export const EMAIL_QUEUE_NAME = "emailQueue";
 
-export const emailQueue = new Queue('emailQueue', { connection });
+export const emailQueue = new Queue(EMAIL_QUEUE_NAME, {
+    connection: getBullMQConnection()
+});
 
+emailQueue.on("error", (error) => {
+    console.error("BullMQ emailQueue error:", error);
+});
 
 export const addEmailToQueue = async (emailData) => {
-    await emailQueue.add("send-verification-email",
+    await emailQueue.add(
+        "send-verification-email",
         emailData,
         {
             attempts: 3,
@@ -15,4 +21,5 @@ export const addEmailToQueue = async (emailData) => {
         }
     );
 };
+
 

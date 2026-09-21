@@ -5,9 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 // Import 'io' from your index.js file
 import { io } from "../../index.js";
-import Redis from "ioredis";
-
-const redis = new Redis();
+import { redis } from "../db/redis.js";
 
 
 const createNote = asyncHandler(

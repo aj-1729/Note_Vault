@@ -1,24 +1,30 @@
 import { Worker } from 'bullmq';
-import IORedis from 'ioredis';
 import { sendEmail } from '../utils/sendEmails.js';
+import { getBullMQConnection } from '../db/redis.js';
+import { EMAIL_QUEUE_NAME } from './emailQueues.js';
 
-const connection = new IORedis({
-    maxRetriesPerRequest: null
-});
+export const emailWorker = new Worker(
+    EMAIL_QUEUE_NAME,
+    async (job) => {
+        console.log(`Processing email job: ${job.id}`);
 
-
-export const emailWorker = new Worker("email-queue", async (job) => {
-    console.log("Processing email job");
-
-    await sendEmail(
-        {
+        await sendEmail({
             email: job.data.email,
             subject: job.data.subject,
             html: job.data.html
+        });
+    },
+    { connection: getBullMQConnection() }
+);
 
-        }
-    )
-}, { connection })
+emailWorker.on("completed", (job) => {
+    console.log(`Email job ${job.id} completed successfully`);
+});
 
+emailWorker.on("failed", (job, err) => {
+    console.error(`Email job ${job?.id} failed with error:`, err);
+});
 
-
+emailWorker.on("error", (err) => {
+    console.error("BullMQ Worker error:", err);
+});
