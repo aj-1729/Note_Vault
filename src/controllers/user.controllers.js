@@ -64,7 +64,7 @@ const registerUser = asyncHandler(
             : `http://localhost:${process.env.PORT || 8001}`);
 
         const verifyUrl = `${baseUrl}/api/v1/users/verify/${verificationToken}`;
-        //console.log(verifyUrl)
+        console.log("🔗 Verification URL:", verifyUrl);
 
         // user.select("-password -verificationToken")
 
