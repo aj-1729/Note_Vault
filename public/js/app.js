@@ -11,7 +11,7 @@ const State = {
     notes: [],
     currentNoteId: null,
 };
-const socket = io("http://localhost:8000");
+const socket = io();
 
 // Listen for the update ping from the server
 socket.on("vault_updated", async () => {

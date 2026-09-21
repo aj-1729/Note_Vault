@@ -59,9 +59,9 @@ const registerUser = asyncHandler(
         if (!user)
             throw new ApiError(400, "User data invalid");
 
-        const baseUrl = process.env.NODE_ENV === "production"
+        const baseUrl = process.env.BASE_URL || (process.env.RENDER
             ? "https://notevault-api.onrender.com"
-            : "http://localhost:8000";
+            : `http://localhost:${process.env.PORT || 8001}`);
 
         const verifyUrl = `${baseUrl}/api/v1/users/verify/${verificationToken}`;
         //console.log(verifyUrl)
