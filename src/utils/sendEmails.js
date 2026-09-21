@@ -1,25 +1,33 @@
-import { Resend } from "resend";
-
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+
+
 dotenv.config();
 
 
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+    },
+});
 
 
 export const sendEmail = async ({ email, subject, html }) => {
     try {
-        const data = await resend.emails.send({
-            from: 'Note Vault <onboarding@resend.dev>',
-            to: email, 
+        const info = await transporter.sendMail({
+            from: `Note Vault <${process.env.EMAIL_USER}>`,
+            to: email,
             subject: subject,
             html: html,
         });
 
-        return data;
+        console.log("Email sent successfully:", info.messageId);
+
+        return info;
     } catch (error) {
-        console.error("Resend Email Error:", error);
+        console.error("Gmail Email Error:", error);
         throw new Error("Failed to send verification email");
     }
 };
