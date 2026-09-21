@@ -64,7 +64,7 @@ const registerUser = asyncHandler(
             : `http://localhost:${process.env.PORT || 8001}`);
 
         const verifyUrl = `${baseUrl}/api/v1/users/verify/${verificationToken}`;
-        console.log("🔗 Verification URL:", verifyUrl);
+       // console.log("🔗 Verification URL:", verifyUrl);
 
         // user.select("-password -verificationToken")
 
@@ -93,7 +93,7 @@ const registerUser = asyncHandler(
         })
 
         return res.status(200).json(
-            new Apiresponse(202, "User registered!!, check the terminal for verification link!", { nuser }
+            new Apiresponse(202, "User registered!!, Please check your email to verify your account!", { nuser }
             )
 
         )
