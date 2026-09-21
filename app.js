@@ -8,9 +8,7 @@ const app = express();
 
 
 app.use(cors({
-    origin: process.env.NODE_ENV === "production"
-        ? "https://notevault-api.onrender.com"
-        : "http://localhost:8000",
+    origin: true,
     credentials: true
 }));
 app.use(cookieParser());

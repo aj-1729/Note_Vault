@@ -1,0 +1,30 @@
+services:
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  app:
+    build: .
+    ports:
+      - "${PORT:-8001}:${PORT:-8001}"
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: ["npm", "run", "worker"]
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:

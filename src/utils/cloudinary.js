@@ -1,4 +1,4 @@
-import {v2 as cloudinary} from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -6,25 +6,24 @@ dotenv.config();
 import ApiError from './Apierror.js';
 
 
-cloudinary.config({ 
+cloudinary.config({
 
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-    api_key: process.env.CLOUDINARY_API_KEY, 
-    api_secret: process.env.CLOUDINARY_API_SECRET 
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 
 });
 
 
-const uploadToCloudinary = async (noteContent)=>
-{
+const uploadToCloudinary = async (noteContent) => {
     try {
-        if(!noteContent) return null;
+        if (!noteContent) return null;
 
         const conContent = Buffer.from(noteContent).toString('base64');
         const dataURI = `data:text/plain;base64,${conContent}`;
 
-        const response = await cloudinary.uploader.upload(dataURI,{
-            resource_type:"raw",
+        const response = await cloudinary.uploader.upload(dataURI, {
+            resource_type: "raw",
             folder: "Note_Vault"
         });
 
@@ -35,4 +34,4 @@ const uploadToCloudinary = async (noteContent)=>
     }
 }
 
-export{uploadToCloudinary}
+export { uploadToCloudinary }

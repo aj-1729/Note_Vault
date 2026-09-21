@@ -1,7 +1,4 @@
-// public/js/api.js
-const BACKEND_URL = window.location.hostname === "localhost"
-    ? "http://localhost:8000/api/v1"
-    : `${window.location.origin}/api/v1`;
+const BACKEND_URL = `${window.location.origin}/api/v1`;
 
 export const API = {
     // --- AUTH ACTIONS ---
