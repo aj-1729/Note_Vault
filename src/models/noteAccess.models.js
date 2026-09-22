@@ -31,8 +31,7 @@ const noteAccessSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// One user = one active access row per note. Re-sharing updates it,
-// never duplicates it.
+
 noteAccessSchema.index({ note: 1, user: 1 }, { unique: true });
 
 export const NoteAccess = mongoose.model("NoteAccess", noteAccessSchema);
